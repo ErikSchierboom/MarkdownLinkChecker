@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MarkdownLinkChecker", "src\MarkdownLinkChecker\MarkdownLinkChecker.fsproj", "{A98EEE1E-B46B-481B-A607-18A23CAC3D33}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MarkdownLinkChecker.IntegrationTests", "src\MarkdownLinkChecker.IntegrationTests\MarkdownLinkChecker.IntegrationTests.fsproj", "{C1631056-1DCB-4D76-BE03-C3ABB2B25972}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A98EEE1E-B46B-481B-A607-18A23CAC3D33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A98EEE1E-B46B-481B-A607-18A23CAC3D33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A98EEE1E-B46B-481B-A607-18A23CAC3D33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A98EEE1E-B46B-481B-A607-18A23CAC3D33}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1631056-1DCB-4D76-BE03-C3ABB2B25972}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1631056-1DCB-4D76-BE03-C3ABB2B25972}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1631056-1DCB-4D76-BE03-C3ABB2B25972}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1631056-1DCB-4D76-BE03-C3ABB2B25972}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="Tests.fs" />
+        <Content Include="Samples\invalid-file-link.md" />
+        <Content Include="Samples\invalid-url-link.md" />
+        <Content Include="Samples\valid-file-and-url-links.md" />
+        <Content Include="Samples\valid-file-link.md" />
+        <Content Include="Samples\OnlyValid\valid-url-link.md" />
+        <Content Include="Samples\OnlyValid\valid-file-link.md" />
+        <Content Include="Samples\OnlyValid\valid-file-and-url-links.md" />
+        <Content Include="Samples\OnlyValid\multiple-valid-links-to-same-file.md" />
+        <Content Include="Samples\valid-and-invalid-url-links.md" />
+        <Content Include="Samples\multiple-valid-links-to-same-file.md" />
+        <Content Include="Samples\valid-and-invalid-file-links.md" />
+        <Content Include="Samples\valid-url-link.md" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
+        <PackageReference Include="xunit" Version="2.4.0" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\MarkdownLinkChecker\MarkdownLinkChecker.fsproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <SampleFiles Include="Samples\**" />
+        <Compile Remove="@(Samples)" />
+    </ItemGroup>
+
+    <Target Name="CopySamples" AfterTargets="Build">
+        <RemoveDir Directories="$(OutputPath)\Samples" />
+        <Copy SourceFiles="@(SampleFiles)" DestinationFolder="$(OutputPath)\Samples\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    </Target>
+
+</Project>
