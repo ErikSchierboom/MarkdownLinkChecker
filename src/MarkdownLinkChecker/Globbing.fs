@@ -9,8 +9,6 @@ open MarkdownLinkChecker.Options
 type File =
     | MarkdownFile of string
     | NonMarkdownFile of string
-    
-let private (|Extension|) (fileMatch: FilePatternMatch) = Path.GetExtension(fileMatch.Path).ToLower()
 
 let private toFile (options: Options) (fileMatch: FilePatternMatch) =
     let path = Path.Combine(options.Directory, fileMatch.Path)
