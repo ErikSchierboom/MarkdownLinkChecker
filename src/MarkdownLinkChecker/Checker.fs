@@ -1,6 +1,6 @@
 module MarkdownLinkChecker.Checker
 
-open MarkdownLinkChecker.Documents
+open MarkdownLinkChecker.Globbing
 open System.Net.Http
 open System.IO
 

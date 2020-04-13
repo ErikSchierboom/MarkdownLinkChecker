@@ -3,7 +3,7 @@ module MarkdownLinkChecker.Markdown
 open Markdig
 open Markdig.Syntax
 open Markdig.Syntax.Inlines
-open MarkdownLinkChecker.Documents
+open MarkdownLinkChecker.Globbing
 
 type LinkLocation =
     { Line: int
