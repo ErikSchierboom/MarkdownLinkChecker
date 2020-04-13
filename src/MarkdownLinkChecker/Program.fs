@@ -13,6 +13,8 @@ let private logOptions options =
     options.Logger.Normal(sprintf "Include pattern: %s" options.Include)    
     options.Logger.Normal(sprintf "Exclude pattern: %s" (options.Exclude |> Option.defaultValue "<not specified>"))
 
+// TODO: add format script
+
 [<EntryPoint>]
 let main argv =
     match parseOptions argv with
