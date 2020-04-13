@@ -8,8 +8,10 @@
     <ItemGroup>
         <Compile Include="Logging.fs" />
         <Compile Include="Documents.fs" />
+        <Compile Include="Parser.fs" />
         <Compile Include="Checker.fs" />
         <Compile Include="Program.fs" />
+        <Compile Include="Markdown.fs" />
     </ItemGroup>
 
     <ItemGroup>
