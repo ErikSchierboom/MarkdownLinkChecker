@@ -6,6 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="Logging.fs" />
         <Compile Include="Documents.fs" />
         <Compile Include="Checker.fs" />
         <Compile Include="Program.fs" />

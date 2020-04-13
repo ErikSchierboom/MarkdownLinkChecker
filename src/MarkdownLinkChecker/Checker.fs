@@ -13,6 +13,8 @@ let private checkUrlLink (url: string) =
         httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url))
         |> Async.AwaitTask
         |> Async.RunSynchronously
+        
+    // TODO: check all links in parallel
 
     if response.IsSuccessStatusCode then Found else NotFound
     
@@ -48,10 +50,11 @@ let private toCheckedDocument (uncheckedDocument: UncheckedDocument) =
       Links = checkedLinks
       Status = status }
     
-let checkDocuments (UncheckedDocuments(uncheckedDocuments)) =
-    uncheckedDocuments
-    |> List.map toCheckedDocument 
-    |> CheckedDocuments
-    
-    
-
+let checkDocuments context (UncheckedDocuments(uncheckedDocuments)) =
+    let checkedDocuments = uncheckedDocuments |> List.map toCheckedDocument
+    let status =
+        let isValid (checkedDocument: CheckedDocument) = checkedDocument.Status = Valid
+        if checkedDocuments |> List.forall isValid then Valid else Invalid
+            
+    { Documents = checkedDocuments
+      Status = status }

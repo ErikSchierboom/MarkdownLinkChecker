@@ -8,6 +8,8 @@ open Markdig
 open Markdig.Syntax
 open Markdig.Syntax.Inlines
 
+open MarkdownLinkChecker.Logging
+
 type Path =
     { Absolute: string
       Relative: string
@@ -25,10 +27,16 @@ type Link =
 type LinkStatus =
     | Found
     | NotFound
-
-type DocumentStatus =
+    
+type Status =
     | Valid
     | Invalid
+
+type UncheckedDocument =
+    { Path: Path
+      Links: Link list }
+
+type UncheckedDocuments = UncheckedDocuments of UncheckedDocument list
 
 type CheckedLink =
     { Link: Link
@@ -37,19 +45,17 @@ type CheckedLink =
 type CheckedDocument =
     { Path: Path
       Links: CheckedLink list
-      Status: DocumentStatus }
+      Status: Status }
 
-type UncheckedDocument =
-    { Path: Path
-      Links: Link list }
+type CheckedDocuments =
+    { Documents: CheckedDocument list
+      Status: Status }
 
-type UncheckedDocuments = UncheckedDocuments of UncheckedDocument list
-
-type CheckedDocuments = CheckedDocuments of CheckedDocument list
-
-type FindOptions =
+type CheckerContext =
     { Exclude: string option
-      Include: string }
+      Include: string
+      Directory: string
+      Logger: Logger }
 
 let private linkReference (inlineLink: LinkInline): string =
     match Option.ofObj inlineLink.Reference with
@@ -77,27 +83,30 @@ let parseLinks (file: Path) (markdown: string): Link list =
     |> Seq.map (parseLink file)
     |> Seq.toList
 
-let private toPath (fileMatch: FilePatternMatch) =
-    { Absolute = fileMatch.Path
+let private toPath context (fileMatch: FilePatternMatch) =
+    { Absolute = Path.Combine(context.Directory, fileMatch.Path)
       Relative = fileMatch.Stem
-      Directory = Path.GetDirectoryName(fileMatch.Path) }
+      Directory = Path.GetDirectoryName(Path.Combine(context.Directory, fileMatch.Path)) }
 
-let private toUncheckedDocument (fileMatch: FilePatternMatch) =
-    let path = toPath fileMatch
+let private toUncheckedDocument context (fileMatch: FilePatternMatch) =
+    let path = toPath context fileMatch
     let extension = Path.GetExtension(path.Absolute).ToLower() 
-    let links = if extension = ".md" then parseLinks path (File.ReadAllText(path.Absolute)) else []
-    { Path = path; Links = links }
+    if extension = ".md" then
+        Some { Path = path; Links = parseLinks path (File.ReadAllText(path.Absolute)) }
+    else
+        None
 
-let findUncheckedDocuments options =
+let findUncheckedDocuments context =
     let matcher =
         Matcher()
-            .AddInclude(options.Include)
-            .AddExclude(options.Exclude |> Option.defaultValue "")
+            .AddInclude(context.Include)
+            .AddExclude(context.Exclude |> Option.defaultValue "")
 
-    let root = DirectoryInfoWrapper(DirectoryInfo(Directory.GetCurrentDirectory()))
+    let root = DirectoryInfoWrapper(DirectoryInfo(context.Directory))
     let matchResults = matcher.Execute(root)
 
     matchResults.Files
-    |> Seq.map toUncheckedDocument
+    |> Seq.choose (toUncheckedDocument context)
     |> Seq.toList
     |> UncheckedDocuments
+        
