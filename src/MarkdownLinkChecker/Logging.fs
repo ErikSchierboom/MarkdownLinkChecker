@@ -19,3 +19,5 @@ type Logger(verbosity: Verbosity) =
     member __.Detailed = log [Detailed; Diagnostic]
             
     member __.Diagnostic = log [Diagnostic]
+    
+    member __.Verbosity = verbosity

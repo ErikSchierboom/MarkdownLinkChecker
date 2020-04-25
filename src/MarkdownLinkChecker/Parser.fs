@@ -37,10 +37,10 @@ let private parseLinksFromFile (path: string) =
     |> Seq.map parseLink
     |> Seq.toList
 
-let parseLinks (file: File): Link list =
-    match file with
-    | NonMarkdownFile _ -> []
-    | MarkdownFile path -> parseLinksFromFile path
+//let parseLinks (file: File): Link list =
+//    match file with
+//    | NonMarkdownFile _ -> []
+//    | MarkdownFile path -> parseLinksFromFile path
     
 //    
 //    

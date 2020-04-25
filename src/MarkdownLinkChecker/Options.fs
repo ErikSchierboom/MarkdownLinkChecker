@@ -5,23 +5,23 @@ open MarkdownLinkChecker.Logging
 open CommandLine
 
 type Options =
-    { Exclude: string option
-      Include: string
-      Directory: string
+    { Directory: string
+      Files: string list
+      Exclude: string list
       Logger: Logger }
 
 type CommandLineOptions =
-    { [<Option('v', "verbosity", Required = false, Default = "normal", HelpText = "Set the verbosity")>]
+    { [<Option('v', "verbosity", Required = false, Default = "normal", HelpText = " Set the verbosity level. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic].")>]
       Verbosity: string
       
-      [<Option('d', "directory", Required = false, HelpText = "Directory to search in")>]
+      [<Option('d', "directory", Required = false, HelpText = "The directory to operate on. Any relative file or directory paths specified in other options will be relative to this directory. If not specified, the working directory is used.")>]
       Directory: string option
 
-      [<Option('e', "exclude", Required = false, HelpText = "Files to exclude")>]
-      Exclude: string option
-      
-      [<Value(0, Required = false, Default = "**/*.md", HelpText = "Files to check")>]
-      Include: string }
+      [<Option('e', "exclude", Required = false, HelpText = "A list of relative Markdown file or directory paths to exclude from formatting.")>]
+      Exclude: string seq
+
+      [<Option('f', "files", Required = false, HelpText = "A list of relative Markdown file or directory paths to include in formatting. All Markdown files are formatted if empty.")>]
+      Files: string seq }
     
 let private parseVerbosity (verbosity: string) =
     match verbosity.ToLower() with
@@ -29,14 +29,14 @@ let private parseVerbosity (verbosity: string) =
     | "m" | "minimal" -> Minimal
     | "n" | "normal" -> Normal
     | "d" | "detailed" -> Detailed
-    | "g" | "diagnostic" -> Diagnostic
+    | "diag" | "diagnostic" -> Diagnostic
     | _ -> Normal
     
 let private fromCommandLineOptions (options: CommandLineOptions) =
-    { Include = options.Include
-      Exclude = options.Exclude
+    { Files = options.Files |> List.ofSeq
+      Exclude = options.Exclude |> List.ofSeq
       Directory = options.Directory |> Option.defaultWith System.IO.Directory.GetCurrentDirectory
-      Logger = Logger(parseVerbosity options.Verbosity) }
+      Logger = options.Verbosity |> parseVerbosity |> Logger }
 
 let (|ParseSuccess|ParseFailure|) (result: ParserResult<CommandLineOptions>) =
     match result with

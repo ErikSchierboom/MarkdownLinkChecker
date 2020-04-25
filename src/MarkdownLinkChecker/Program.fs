@@ -8,10 +8,13 @@ type ExitCode =
     | Error = 1
 
 let private logOptions options =
+    let logFilesOption files = if List.isEmpty files then "(not specified)" else String.concat ", " files
+    
     options.Logger.Normal("Running Markdown link checker using:")
+    options.Logger.Normal(sprintf "Verbosity: %A" options.Logger.Verbosity)    
     options.Logger.Normal(sprintf "Directory: %s" options.Directory)    
-    options.Logger.Normal(sprintf "Include pattern: %s" options.Include)    
-    options.Logger.Normal(sprintf "Exclude pattern: %s" (options.Exclude |> Option.defaultValue "<not specified>"))
+    options.Logger.Normal(sprintf "Files: %s" (logFilesOption options.Files))
+    options.Logger.Normal(sprintf "Exclude: %s" (logFilesOption options.Exclude))
 
 // TODO: add format script
 
@@ -21,7 +24,7 @@ let main argv =
     | ParseSuccess options ->
         logOptions options
         
-        let files = findFiles options
+//        let files = findFiles options
         
         int ExitCode.Ok
     | ParseFailure ->
