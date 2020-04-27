@@ -1,8 +1,11 @@
 ﻿module MarkdownLinkChecker.Program
 
+open System.Diagnostics
+
 open MarkdownLinkChecker.Options
-open MarkdownLinkChecker.Globbing
+open MarkdownLinkChecker.Files
 open MarkdownLinkChecker.Parser
+open MarkdownLinkChecker.Checker
     
 type ExitCode =
     | Ok = 0
@@ -22,13 +25,18 @@ let private logOptions options =
 
 [<EntryPoint>]
 let main argv =
+    let stopwatch = Stopwatch.StartNew();
+    
     match parseOptions argv with
     | ParseSuccess options ->
         logOptions options
         
-        let files = findMarkdownFiles options
+        let files = findFiles options
         let documents = parseDocuments files
-        
-        int ExitCode.Ok
+        let status = checkDocuments documents
+
+        match status with
+        | Valid -> int ExitCode.Ok
+        | Invalid -> int ExitCode.Error
     | ParseFailure ->
         int ExitCode.Error 

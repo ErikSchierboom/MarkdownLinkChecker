@@ -1,4 +1,4 @@
-module MarkdownLinkChecker.Globbing
+module MarkdownLinkChecker.Files
 
 open System
 open System.IO
@@ -7,7 +7,7 @@ open Microsoft.Extensions.FileSystemGlobbing.Abstractions
 
 open MarkdownLinkChecker.Options
 
-type MarkdownFile = MarkdownFile of string
+type File = File of string
 
 module Path =
     open System.Runtime.InteropServices
@@ -24,52 +24,52 @@ module Path =
 let private isMarkdownFile (path: string) =
     Path.GetExtension(path) = ".md"
     
-let private toMarkdownFile (path: string) =
+let private toFile (path: string) =
     if isMarkdownFile path then
-        Some (MarkdownFile path) 
+        Some (File path) 
     else
         None
 
-let private markdownFilesInDirectory (options: Options) =
+let private filesInDirectory (options: Options) =
     let matcher = Matcher().AddInclude("**/*.md")
     let root = DirectoryInfoWrapper(DirectoryInfo(options.Directory))
     let matchResults = matcher.Execute(root)
 
     matchResults.Files
     |> Seq.map (fun fileMatch -> Path.getFullPath options fileMatch.Path)
-    |> Seq.choose toMarkdownFile
+    |> Seq.choose toFile
     
-let private markdownFilesAsIncluded (options: Options) =
+let private includedFiles (options: Options) =
     options.Files
     |> Seq.map (Path.getFullPath options)
-    |> Seq.choose toMarkdownFile
+    |> Seq.choose toFile
     
-let private markdownFilesAsExcluded (options: Options) =
+let private excludedFiles (options: Options) =
     options.Exclude
     |> Seq.map (Path.getFullPath options)
-    |> Seq.choose toMarkdownFile
+    |> Seq.choose toFile
 
-let private checkAllMarkdownFilesInDirectory (options: Options) =
+let private checkAllFilesInDirectory (options: Options) =
     List.isEmpty options.Files
 
-let private filterExcludedMarkdownFiles (options: Options) markdownFiles =
-    let isExcludedFile (MarkdownFile path) =
-        markdownFilesAsExcluded options
-        |> Seq.exists (fun (MarkdownFile excludePath) -> path.StartsWith(excludePath, Path.stringComparison))
+let private filterExcludedFiles (options: Options) files =
+    let isExcludedFile (File path) =
+        excludedFiles options
+        |> Seq.exists (fun (File excludePath) -> path.StartsWith(excludePath, Path.stringComparison))
 
-    markdownFiles
+    files
     |> Seq.filter (isExcludedFile >> not) 
 
-let findMarkdownFiles (options: Options): MarkdownFile list =
-    let markdownFiles = 
-        if checkAllMarkdownFilesInDirectory options then
+let findFiles (options: Options): File list =
+    let files = 
+        if checkAllFilesInDirectory options then
             options.Logger.Normal("Checking Markdown files in directory")
-            markdownFilesInDirectory options
+            filesInDirectory options
         else
             options.Logger.Normal("Checking specified Markdown files")
-            markdownFilesAsIncluded options
+            includedFiles options
     
-    markdownFiles
-    |> filterExcludedMarkdownFiles options
+    files
+    |> filterExcludedFiles options
     |> Seq.toList
         

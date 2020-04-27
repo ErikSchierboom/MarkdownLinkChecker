@@ -8,10 +8,9 @@
     <ItemGroup>
         <Compile Include="Logging.fs" />
         <Compile Include="Options.fs" />
-        <Compile Include="Globbing.fs" />
+        <Compile Include="Files.fs" />
         <Compile Include="Parser.fs" />
-<!--        <Compile Include="Checker.fs" />-->
-<!--        <Compile Include="Markdown.fs" />-->
+        <Compile Include="Checker.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 

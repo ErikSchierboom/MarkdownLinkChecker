@@ -1,6 +1,7 @@
 module MarkdownLinkChecker.Parser
 
-open MarkdownLinkChecker.Globbing
+open System
+open MarkdownLinkChecker.Files
 
 open Markdig
 open Markdig.Syntax
@@ -10,13 +11,13 @@ type LinkLocation =
     { Line: int
       Column: int }
     
-type MarkdownLink =
+type Link =
     | FileLink of path: string * location: LinkLocation
     | UrlLink of url: string * location: LinkLocation
     
-type MarkdownDocument =
-    { File: MarkdownFile
-      Links: MarkdownLink list }
+type Document =
+    { File: File
+      Links: Link list }
 
 let private linkReference (inlineLink: LinkInline): string =
     match Option.ofObj inlineLink.Reference with
@@ -27,22 +28,26 @@ let private linkLocation (inlineLink: LinkInline): LinkLocation =
     { Line = inlineLink.Line
       Column = inlineLink.Column }
     
-let private (|Url|File|) (reference: string) =
-    if reference.StartsWith("http:") || reference.StartsWith("https:") then Url reference else File reference
+let private (|UrlReference|FileReference|) (reference: string) =
+    let isUrlReference =
+        reference.StartsWith("http:", StringComparison.OrdinalIgnoreCase) ||
+        reference.StartsWith("https:", StringComparison.OrdinalIgnoreCase)
+    
+    if isUrlReference then UrlReference reference else FileReference reference
 
 let private parseLink (inlineLink: LinkInline) =
     match linkReference inlineLink with
-    | Url url -> UrlLink(url, linkLocation inlineLink)
-    | File path -> FileLink(path, linkLocation inlineLink)
+    | UrlReference url -> UrlLink(url, linkLocation inlineLink)
+    | FileReference path -> FileLink(path, linkLocation inlineLink)
     
-let private parseLinks (MarkdownFile path) =
+let private parseLinks (File path) =
     let markdown = System.IO.File.ReadAllText(path)
     Markdown.Parse(markdown).Descendants<LinkInline>()
     |> Seq.map parseLink
     |> Seq.toList
 
-let private parseDocument markdownFile =
-    { File = markdownFile
-      Links = parseLinks markdownFile }
+let private parseDocument file =
+    { File = file
+      Links = parseLinks file }
     
-let parseDocuments markdownFiles = List.map parseDocument markdownFiles
+let parseDocuments files = List.map parseDocument files

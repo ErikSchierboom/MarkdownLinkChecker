@@ -1,8 +1,26 @@
 module MarkdownLinkChecker.Checker
 
-open MarkdownLinkChecker.Globbing
 open System.Net.Http
 open System.IO
+
+open MarkdownLinkChecker.Parser
+open MarkdownLinkChecker.Files
+
+type LinkStatus =
+    | Found
+    | NotFound
+
+type CheckedLink =
+    { Link: Link
+      Status: LinkStatus }
+    
+type CheckedDocument =
+    { File: File
+      CheckedLinks: CheckedLink list }
+    
+type Status =
+    | Valid
+    | Invalid
 
 let mutable private linkStatusCache: Map<string, LinkStatus> = Map.empty
 
@@ -13,15 +31,13 @@ let private checkUrlLink (url: string) =
         httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url))
         |> Async.AwaitTask
         |> Async.RunSynchronously
-        
-    // TODO: check all links in parallel
 
     if response.IsSuccessStatusCode then Found else NotFound
     
 let private checkFileLink (path: string) =
     if File.Exists(path) then Found else NotFound
 
-let private tryCheckAndUpdate (link: string) check: LinkStatus =
+let private checkLinkStatusCached (link: string) check: LinkStatus =
     match Map.tryFind link linkStatusCache with
     | Some linkStatus ->
         linkStatus
@@ -30,31 +46,29 @@ let private tryCheckAndUpdate (link: string) check: LinkStatus =
         linkStatusCache <- Map.add link linkStatus linkStatusCache
         linkStatus
 
-let private check (link: Link): LinkStatus =
+let private checkLinkStatus (document: Document) (link: Link): LinkStatus =
     match link with
     | UrlLink(url, _) ->
-        tryCheckAndUpdate url checkUrlLink
-    | FileLink(path, location) ->
-        let fullPath = Path.GetFullPath(Path.Combine(location.File.Directory, path))
-        tryCheckAndUpdate fullPath checkFileLink
+        checkLinkStatusCached url checkUrlLink
+    | FileLink(path, _) ->
+        let (File documentPath) = document.File 
+        let fullPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(documentPath), path))
+        checkLinkStatusCached fullPath checkFileLink
         
-let private toCheckedLink (link: Link) =
-    { Link = link; Status = check link }
+let private checkLink (document: Document) (link: Link) =
+    { Link = link
+      Status = checkLinkStatus document link }
 
-let private toCheckedDocument (uncheckedDocument: UncheckedDocument) =
-    let notFound (link: CheckedLink) = link.Status = NotFound
-    let checkedLinks = List.map toCheckedLink uncheckedDocument.Links
-    let status = if List.exists notFound checkedLinks then Invalid else Valid        
-        
-    { Path = uncheckedDocument.Path
-      Links = checkedLinks
-      Status = status }
-    
-let checkDocuments context (UncheckedDocuments(uncheckedDocuments)) =
-    let checkedDocuments = uncheckedDocuments |> List.map toCheckedDocument
-    let status =
-        let isValid (checkedDocument: CheckedDocument) = checkedDocument.Status = Valid
-        if checkedDocuments |> List.forall isValid then Valid else Invalid
-            
-    { Documents = checkedDocuments
-      Status = status }
+let private checkDocument (document: Document) =
+    { File = document.File
+      CheckedLinks = document.Links |> List.map (checkLink document) }
+
+let private checkedDocumentIsValid checkedDocument =
+    checkedDocument.CheckedLinks
+    |> List.forall (fun checkedLink -> checkedLink.Status = Found)
+
+let checkDocuments documents =
+    let checkedDocuments = documents |> List.map checkDocument    
+    let documentsAreValid = checkedDocuments |> List.forall checkedDocumentIsValid
+
+    if documentsAreValid then Valid else Invalid
