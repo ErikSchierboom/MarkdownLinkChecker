@@ -2,7 +2,6 @@ module MarkdownLinkChecker.Globbing
 
 open System
 open System.IO
-open System.Runtime.InteropServices
 open Microsoft.Extensions.FileSystemGlobbing
 open Microsoft.Extensions.FileSystemGlobbing.Abstractions
 
@@ -10,12 +9,21 @@ open MarkdownLinkChecker.Options
 
 type MarkdownFile = MarkdownFile of string
 
+module Path =
+    open System.Runtime.InteropServices
+    
+    let getFullPath (options: Options) (path: string) =
+        Path.Combine(options.Directory, path) |> Path.GetFullPath
+        
+    let stringComparison =
+        if RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then
+            StringComparison.OrdinalIgnoreCase
+        else
+            StringComparison.Ordinal
+
 let private isMarkdownFile (path: string) =
     Path.GetExtension(path) = ".md"
-
-let private toFullPath (options: Options) (path: string) =
-    Path.Combine(options.Directory, path)
-
+    
 let private toMarkdownFile (path: string) =
     if isMarkdownFile path then
         Some (MarkdownFile path) 
@@ -28,32 +36,26 @@ let private markdownFilesInDirectory (options: Options) =
     let matchResults = matcher.Execute(root)
 
     matchResults.Files
-    |> Seq.map (fun fileMatch -> toFullPath options fileMatch.Path)
+    |> Seq.map (fun fileMatch -> Path.getFullPath options fileMatch.Path)
     |> Seq.choose toMarkdownFile
     
 let private markdownFilesAsIncluded (options: Options) =
     options.Files
-    |> Seq.map (toFullPath options)
+    |> Seq.map (Path.getFullPath options)
+    |> Seq.choose toMarkdownFile
+    
+let private markdownFilesAsExcluded (options: Options) =
+    options.Exclude
+    |> Seq.map (Path.getFullPath options)
     |> Seq.choose toMarkdownFile
 
 let private checkAllMarkdownFilesInDirectory (options: Options) =
     List.isEmpty options.Files
 
-let private pathComparison =
-    if RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then
-        StringComparison.OrdinalIgnoreCase
-    else
-        StringComparison.Ordinal
-
 let private filterExcludedMarkdownFiles (options: Options) markdownFiles =
-    let excludedFilePaths =
-        options.Exclude
-        |> Seq.map (toFullPath options)
-        |> Seq.toList
-        
     let isExcludedFile (MarkdownFile path) =
-        excludedFilePaths
-        |> Seq.exists (fun excludePath -> path.Equals(excludePath, pathComparison))
+        markdownFilesAsExcluded options
+        |> Seq.exists (fun (MarkdownFile excludePath) -> path.StartsWith(excludePath, Path.stringComparison))
     
     markdownFiles
     |> Seq.filter (isExcludedFile >> not) 

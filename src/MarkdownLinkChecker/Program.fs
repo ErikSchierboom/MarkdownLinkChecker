@@ -24,7 +24,7 @@ let main argv =
     | ParseSuccess options ->
         logOptions options
         
-//        let files = findFiles options
+        let files = findMarkdownFiles options
         
         int ExitCode.Ok
     | ParseFailure ->
