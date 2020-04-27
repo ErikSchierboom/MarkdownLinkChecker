@@ -2,6 +2,7 @@
 
 open MarkdownLinkChecker.Options
 open MarkdownLinkChecker.Globbing
+open MarkdownLinkChecker.Parser
     
 type ExitCode =
     | Ok = 0
@@ -15,6 +16,7 @@ let private logOptions options =
     options.Logger.Normal(sprintf "Directory: %s" options.Directory)    
     options.Logger.Normal(sprintf "Files: %s" (logFilesOption options.Files))
     options.Logger.Normal(sprintf "Exclude: %s" (logFilesOption options.Exclude))
+    options.Logger.Normal("")
 
 // TODO: add format script
 
@@ -25,6 +27,7 @@ let main argv =
         logOptions options
         
         let files = findMarkdownFiles options
+        let documents = parseDocuments files
         
         int ExitCode.Ok
     | ParseFailure ->

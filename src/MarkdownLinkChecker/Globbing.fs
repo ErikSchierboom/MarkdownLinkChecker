@@ -56,15 +56,17 @@ let private filterExcludedMarkdownFiles (options: Options) markdownFiles =
     let isExcludedFile (MarkdownFile path) =
         markdownFilesAsExcluded options
         |> Seq.exists (fun (MarkdownFile excludePath) -> path.StartsWith(excludePath, Path.stringComparison))
-    
+
     markdownFiles
     |> Seq.filter (isExcludedFile >> not) 
 
 let findMarkdownFiles (options: Options): MarkdownFile list =
     let markdownFiles = 
         if checkAllMarkdownFilesInDirectory options then
+            options.Logger.Normal("Checking Markdown files in directory")
             markdownFilesInDirectory options
         else
+            options.Logger.Normal("Checking specified Markdown files")
             markdownFilesAsIncluded options
     
     markdownFiles
