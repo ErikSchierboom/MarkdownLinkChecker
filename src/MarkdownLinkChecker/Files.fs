@@ -6,6 +6,8 @@ open Microsoft.Extensions.FileSystemGlobbing
 open Microsoft.Extensions.FileSystemGlobbing.Abstractions
 
 open MarkdownLinkChecker.Options
+open MarkdownLinkChecker.Logging
+open MarkdownLinkChecker.Timing
 
 type File = File of string
 
@@ -60,16 +62,31 @@ let private filterExcludedFiles (options: Options) files =
     files
     |> Seq.filter (isExcludedFile >> not) 
 
+let private logBefore (options: Options) =
+    if checkAllFilesInDirectory options then                
+        options.Logger.Normal("Checking Markdown files in directory...")
+    else                
+        options.Logger.Normal("Checking specified Markdown files...")
+
+let private logAfter (options: Options) (files: File list) (elapsed: TimeSpan) =
+    options.Logger.Normal(sprintf "Found %d files [%.0fms]" (List.length files) elapsed.TotalMilliseconds)
+    options.Logger.Detailed("Files found:")
+    List.iter (fun (File file) -> options.Logger.Detailed(sprintf "- %s" file)) files
+
 let findFiles (options: Options): File list =
-    let files = 
-        if checkAllFilesInDirectory options then
-            options.Logger.Normal("Checking Markdown files in directory")
-            filesInDirectory options
-        else
-            options.Logger.Normal("Checking specified Markdown files")
-            includedFiles options
-    
+    let files, elapsed = time (fun () ->
+        logBefore options
+        
+        let files = 
+            if checkAllFilesInDirectory options then                
+                filesInDirectory options
+            else                
+                includedFiles options
+        
+        files
+        |> filterExcludedFiles options
+        |> Seq.toList)
+
+    logAfter options files elapsed
     files
-    |> filterExcludedFiles options
-    |> Seq.toList
         

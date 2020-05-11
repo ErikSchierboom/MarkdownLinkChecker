@@ -7,6 +7,7 @@
 
     <ItemGroup>
         <Compile Include="Logging.fs" />
+        <Compile Include="Timing.fs" />
         <Compile Include="Options.fs" />
         <Compile Include="Files.fs" />
         <Compile Include="Parser.fs" />

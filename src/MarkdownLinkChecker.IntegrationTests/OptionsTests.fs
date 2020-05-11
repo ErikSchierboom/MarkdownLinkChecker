@@ -1,7 +1,5 @@
 module MarkdownLinkChecker.IntegrationTests.OptionsTests
 
-open System.IO
-open System.Reflection
 open Xunit
 
 open MarkdownLinkChecker.IntegrationTests.Runner
