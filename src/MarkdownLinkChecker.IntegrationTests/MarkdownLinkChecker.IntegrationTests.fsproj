@@ -10,6 +10,7 @@
         <Compile Include="SingleFileTests.fs" />
         <Compile Include="MultipleFilesTests.fs" />
         <Compile Include="DirectoryTests.fs" />
+        <Compile Include="OptionsTests.fs" />
     </ItemGroup>
 
     <ItemGroup>
@@ -25,11 +26,6 @@
     <ItemGroup>
         <SampleFiles Include="Samples\**" />
         <Compile Remove="@(Samples)" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Content Include="Samples\NoMarkdownFiles\config.json" />
-      <Content Include="Samples\NoMarkdownFiles\test.txt" />
     </ItemGroup>
 
     <Target Name="CopySamples" AfterTargets="Build">
