@@ -25,13 +25,13 @@ type Status =
     | Valid
     | Invalid
 
-let private memoize fn =
-  let cache = System.Collections.Concurrent.ConcurrentDictionary<string, LinkStatus>()
-  (fun key -> cache.GetOrAdd(key, fun key -> fn key))
+let linkStatusCache = System.Collections.Concurrent.ConcurrentDictionary<string, LinkStatus>()
 
 let private httpClient = new HttpClient()
 
-let private checkUrlLink (url: string) =
+let private checkUrlLink (options: Options) (url: string) =
+    options.Logger.Normal(sprintf "Checking URL: %s" url)
+    
     let response =
         httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url))
         |> Async.AwaitTask
@@ -39,44 +39,39 @@ let private checkUrlLink (url: string) =
 
     if response.IsSuccessStatusCode then Found else NotFound
     
-let private checkFileLink (path: string) =
+let private checkFileLink (options: Options) (path: string) =
+    options.Logger.Normal(sprintf "Checking file %s" path)
+    
     if File.Exists(path) then Found else NotFound
 
-let private checkLinkStatus =
-    let checkUrlLinkMemoized = memoize checkUrlLink
-    let checkFileLinkMemoized = memoize checkFileLink
-    
-    fun (document: Document) (link: Link) ->
-        match link with
-        | UrlLink(url, _) ->
-            printfn "Checking URL %s" url
-            checkUrlLinkMemoized url
-        | FileLink(path, _) ->
-            let (File documentPath) = document.File 
-            let fullPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(documentPath), path))
-            checkFileLinkMemoized fullPath
+let private checkLinkStatus (options: Options) (document: Document) (link: Link) =
+    match link with
+    | UrlLink(url, _) ->
+        linkStatusCache.GetOrAdd(url, checkUrlLink options)
+    | FileLink(path, _) ->
+        let (File documentPath) = document.File 
+        let fullPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(documentPath), path))
+        linkStatusCache.GetOrAdd(fullPath, checkFileLink options)
         
-let private checkLink document link =
+let private checkLink (options: Options) document link =
     { Link = link
-      Status = checkLinkStatus document link }
+      Status = checkLinkStatus options document link }
 
-let private checkDocument (document: Document) =
+let private checkDocument (options: Options) (document: Document) =
     { File = document.File
-      CheckedLinks = document.Links |> List.map (checkLink document) }
+      CheckedLinks = document.Links |> List.map (checkLink options document) }
 
 let private checkedDocumentIsValid checkedDocument =
     checkedDocument.CheckedLinks
     |> List.forall (fun checkedLink -> checkedLink.Status = Found)
-    
-let private logAfter (options: Options) (elapsed: TimeSpan) =
-    options.Logger.Normal(sprintf "Checked links [%.0fms]" elapsed.TotalMilliseconds)
 
 let checkDocuments (options: Options) documents =
     let valid, elapsed = time (fun () ->
-        let checkedDocuments = documents |> List.map checkDocument    
+        options.Logger.Normal("Checking links ...")
+        let checkedDocuments = documents |> List.map (checkDocument options)   
         let documentsAreValid = checkedDocuments |> List.forall checkedDocumentIsValid
 
         if documentsAreValid then Valid else Invalid)
     
-    logAfter options elapsed
+    options.Logger.Normal(sprintf "Checked links [%.1fms]" elapsed.TotalMilliseconds)
     valid

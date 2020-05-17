@@ -49,16 +49,19 @@ let private parseLinks (File path) =
     |> Seq.map parseLink
     |> Seq.toList
 
-let private parseDocument file =
-    { File = file
-      Links = parseLinks file }
+let private parseDocument (options: Options) file =
+    let document, elapsed = time (fun () ->
+        { File = file
+          Links = parseLinks file })
     
-let private logAfter (options: Options) (elapsed: TimeSpan) =
-    options.Logger.Normal(sprintf "Parsed Markdown documents [%.0fms]" elapsed.TotalMilliseconds)
+    let (File path) = file
+    options.Logger.Detailed(sprintf "Parsed document %s. %d links found [%.1fms]" path document.Links.Length elapsed.TotalMilliseconds)
+    document
     
 let parseDocuments (options: Options) files =
     let documents, elapsed = time (fun () ->
-        List.map parseDocument files)
+        options.Logger.Normal("Parsing Markdown documents ...")
+        List.map (parseDocument options) files)
     
-    logAfter options elapsed
+    options.Logger.Normal(sprintf "Parsed Markdown documents [%.1fms]" elapsed.TotalMilliseconds)
     documents
