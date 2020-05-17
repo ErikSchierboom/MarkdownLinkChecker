@@ -36,23 +36,36 @@ let private fromCommandLineOptions (options: CommandLineOptions) =
       Directory = options.Directory |> Option.defaultWith System.IO.Directory.GetCurrentDirectory
       Logger = options.Verbosity |> Option.map parseVerbosity |> Option.defaultValue Normal |> Logger }
     
-let private log (logger: Logger) options =
+let private log (options: Options) (commandLineOptions: CommandLineOptions) =
     let notSpecified = "(not specified)"
-    let logFiles files = if Seq.isEmpty files then notSpecified else String.concat ", " files
     
-    logger.Detailed("Running with options:")
-    logger.Detailed(sprintf "Verbosity: %s" (options.Verbosity |> Option.map parseVerbosity |> Option.map string |> Option.defaultValue notSpecified))   
-    logger.Detailed(sprintf "Directory: %s" (options.Directory |> Option.defaultValue notSpecified))   
-    logger.Detailed(sprintf "Files: %s" (logFiles options.Files))
-    logger.Detailed(sprintf "Exclude: %s" (logFiles options.Exclude))
-    logger.Detailed("")
+    let verbosity =
+        commandLineOptions.Verbosity
+        |> Option.map parseVerbosity
+        |> Option.map string
+        |> Option.defaultValue notSpecified
+        
+    let directory =
+        commandLineOptions.Directory
+        |> Option.defaultValue notSpecified 
+    
+    let logFiles files = if Seq.isEmpty files then notSpecified else String.concat ", " files
+    let files = logFiles commandLineOptions.Files
+    let exclude = logFiles commandLineOptions.Exclude
+    
+    options.Logger.Detailed("Running with options:")
+    options.Logger.Detailed(sprintf "Verbosity: %s" verbosity)   
+    options.Logger.Detailed(sprintf "Directory: %s" directory)   
+    options.Logger.Detailed(sprintf "Files: %s" files)
+    options.Logger.Detailed(sprintf "Exclude: %s" exclude)
+    options.Logger.Detailed("")
 
 let (|ParseSuccess|ParseFailure|) (result: ParserResult<CommandLineOptions>) =
     match result with
     | :? (Parsed<CommandLineOptions>) as parsedOptions ->
         let commandLineOptions = parsedOptions.Value 
         let options = fromCommandLineOptions commandLineOptions
-        log options.Logger commandLineOptions
+        log options commandLineOptions
 
         ParseSuccess options 
     | _ ->

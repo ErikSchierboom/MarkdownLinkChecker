@@ -69,9 +69,7 @@ let private logBefore (options: Options) =
         options.Logger.Normal("Checking specified Markdown files ...")
 
 let private logAfter (options: Options) (files: File list) (elapsed: TimeSpan) =
-    options.Logger.Normal(sprintf "Found %d files [%.0fms]" (List.length files) elapsed.TotalMilliseconds)
-    options.Logger.Detailed("Files found:")
-    List.iter (fun (File file) -> options.Logger.Detailed(sprintf "- %s" file)) files
+    options.Logger.Normal(sprintf "Found %d files to check [%.0fms]" (List.length files) elapsed.TotalMilliseconds)
 
 let findFiles (options: Options): File list =
     let files, elapsed = time (fun () ->
