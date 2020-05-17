@@ -25,7 +25,9 @@ type Status =
     | Valid
     | Invalid
 
-let mutable private linkStatusCache: Map<string, LinkStatus> = Map.empty
+let private memoize fn =
+  let cache = System.Collections.Concurrent.ConcurrentDictionary<string, LinkStatus>()
+  (fun key -> cache.GetOrAdd(key, fun key -> fn key))
 
 let private httpClient = new HttpClient()
 
@@ -40,25 +42,21 @@ let private checkUrlLink (url: string) =
 let private checkFileLink (path: string) =
     if File.Exists(path) then Found else NotFound
 
-let private checkLinkStatusCached (link: string) check: LinkStatus =
-    match Map.tryFind link linkStatusCache with
-    | Some linkStatus ->
-        linkStatus
-    | None ->
-        let linkStatus = check link
-        linkStatusCache <- Map.add link linkStatus linkStatusCache
-        linkStatus
-
-let private checkLinkStatus (document: Document) (link: Link): LinkStatus =
-    match link with
-    | UrlLink(url, _) ->
-        checkLinkStatusCached url checkUrlLink
-    | FileLink(path, _) ->
-        let (File documentPath) = document.File 
-        let fullPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(documentPath), path))
-        checkLinkStatusCached fullPath checkFileLink
+let private checkLinkStatus =
+    let checkUrlLinkMemoized = memoize checkUrlLink
+    let checkFileLinkMemoized = memoize checkFileLink
+    
+    fun (document: Document) (link: Link) ->
+        match link with
+        | UrlLink(url, _) ->
+            printfn "Checking URL %s" url
+            checkUrlLinkMemoized url
+        | FileLink(path, _) ->
+            let (File documentPath) = document.File 
+            let fullPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(documentPath), path))
+            checkFileLinkMemoized fullPath
         
-let private checkLink (document: Document) (link: Link) =
+let private checkLink document link =
     { Link = link
       Status = checkLinkStatus document link }
 
