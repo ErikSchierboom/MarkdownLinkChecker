@@ -16,10 +16,9 @@ let main argv =
     match parseOptions argv with
     | ParseSuccess options ->
         let status =
-            options
-            |> findFiles
-            |> parseDocuments
-            |> checkDocuments
+            findFiles options
+            |> (parseDocuments options)
+            |> (checkDocuments options)
 
         match status with
         | Valid -> int ExitCode.Ok

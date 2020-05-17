@@ -1,11 +1,14 @@
 module MarkdownLinkChecker.Parser
 
 open System
-open MarkdownLinkChecker.Files
 
 open Markdig
 open Markdig.Syntax
 open Markdig.Syntax.Inlines
+
+open MarkdownLinkChecker.Files
+open MarkdownLinkChecker.Options
+open MarkdownLinkChecker.Timing
 
 type LinkLocation =
     { Line: int
@@ -50,4 +53,12 @@ let private parseDocument file =
     { File = file
       Links = parseLinks file }
     
-let parseDocuments files = List.map parseDocument files
+let private logAfter (options: Options) (elapsed: TimeSpan) =
+    options.Logger.Normal(sprintf "Parsed Markdown documents [%.0fms]" elapsed.TotalMilliseconds)
+    
+let parseDocuments (options: Options) files =
+    let documents, elapsed = time (fun () ->
+        List.map parseDocument files)
+    
+    logAfter options elapsed
+    documents

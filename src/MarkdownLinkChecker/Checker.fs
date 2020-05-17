@@ -1,10 +1,13 @@
 module MarkdownLinkChecker.Checker
 
+open System
 open System.Net.Http
 open System.IO
 
 open MarkdownLinkChecker.Parser
 open MarkdownLinkChecker.Files
+open MarkdownLinkChecker.Options
+open MarkdownLinkChecker.Timing
 
 type LinkStatus =
     | Found
@@ -66,9 +69,16 @@ let private checkDocument (document: Document) =
 let private checkedDocumentIsValid checkedDocument =
     checkedDocument.CheckedLinks
     |> List.forall (fun checkedLink -> checkedLink.Status = Found)
+    
+let private logAfter (options: Options) (elapsed: TimeSpan) =
+    options.Logger.Normal(sprintf "Checked links [%.0fms]" elapsed.TotalMilliseconds)
 
-let checkDocuments documents =
-    let checkedDocuments = documents |> List.map checkDocument    
-    let documentsAreValid = checkedDocuments |> List.forall checkedDocumentIsValid
+let checkDocuments (options: Options) documents =
+    let valid, elapsed = time (fun () ->
+        let checkedDocuments = documents |> List.map checkDocument    
+        let documentsAreValid = checkedDocuments |> List.forall checkedDocumentIsValid
 
-    if documentsAreValid then Valid else Invalid
+        if documentsAreValid then Valid else Invalid)
+    
+    logAfter options elapsed
+    valid
