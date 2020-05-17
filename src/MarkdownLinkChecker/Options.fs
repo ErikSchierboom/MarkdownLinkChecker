@@ -11,8 +11,8 @@ type Options =
       Logger: Logger }
 
 type CommandLineOptions =
-    { [<Option('v', "verbosity", Required = false, Default = "normal", HelpText = " Set the verbosity level. Allowed values are q[uiet], n[ormal] and d[etailed].")>]
-      Verbosity: string
+    { [<Option('v', "verbosity", Required = false, HelpText = "Set the verbosity level. Allowed values are q[uiet], n[ormal] (default) and d[etailed].")>]
+      Verbosity: string option
       
       [<Option('d', "directory", Required = false, HelpText = "The directory to operate on. Any relative file or directory paths specified in other options will be relative to this directory. If not specified, the working directory is used.")>]
       Directory: string option
@@ -34,23 +34,25 @@ let private fromCommandLineOptions (options: CommandLineOptions) =
     { Files = options.Files |> List.ofSeq
       Exclude = options.Exclude |> List.ofSeq
       Directory = options.Directory |> Option.defaultWith System.IO.Directory.GetCurrentDirectory
-      Logger = options.Verbosity |> parseVerbosity |> Logger }
+      Logger = options.Verbosity |> Option.map parseVerbosity |> Option.defaultValue Normal |> Logger }
     
-let private log options =
-    let logFiles files = if List.isEmpty files then "(not specified)" else String.concat ", " files
+let private log (logger: Logger) options =
+    let notSpecified = "(not specified)"
+    let logFiles files = if Seq.isEmpty files then notSpecified else String.concat ", " files
     
-    options.Logger.Normal("Running with options:")
-    options.Logger.Normal(sprintf "Verbosity: %A" options.Logger.Verbosity)    
-    options.Logger.Normal(sprintf "Directory: %s" options.Directory)    
-    options.Logger.Normal(sprintf "Files: %s" (logFiles options.Files))
-    options.Logger.Normal(sprintf "Exclude: %s" (logFiles options.Exclude))
-    options.Logger.Normal("")
+    logger.Detailed("Running with options:")
+    logger.Detailed(sprintf "Verbosity: %s" (options.Verbosity |> Option.map parseVerbosity |> Option.map string |> Option.defaultValue notSpecified))   
+    logger.Detailed(sprintf "Directory: %s" (options.Directory |> Option.defaultValue notSpecified))   
+    logger.Detailed(sprintf "Files: %s" (logFiles options.Files))
+    logger.Detailed(sprintf "Exclude: %s" (logFiles options.Exclude))
+    logger.Detailed("")
 
 let (|ParseSuccess|ParseFailure|) (result: ParserResult<CommandLineOptions>) =
     match result with
-    | :? (Parsed<CommandLineOptions>) as commandLineOptions ->
-        let options = fromCommandLineOptions commandLineOptions.Value
-        log options
+    | :? (Parsed<CommandLineOptions>) as parsedOptions ->
+        let commandLineOptions = parsedOptions.Value 
+        let options = fromCommandLineOptions commandLineOptions
+        log options.Logger commandLineOptions
 
         ParseSuccess options 
     | _ ->

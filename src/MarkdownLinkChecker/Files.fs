@@ -64,9 +64,9 @@ let private filterExcludedFiles (options: Options) files =
 
 let private logBefore (options: Options) =
     if checkAllFilesInDirectory options then                
-        options.Logger.Normal("Checking Markdown files in directory...")
+        options.Logger.Normal(sprintf "Checking Markdown files in directory %s ..." options.Directory)
     else                
-        options.Logger.Normal("Checking specified Markdown files...")
+        options.Logger.Normal("Checking specified Markdown files ...")
 
 let private logAfter (options: Options) (files: File list) (elapsed: TimeSpan) =
     options.Logger.Normal(sprintf "Found %d files [%.0fms]" (List.length files) elapsed.TotalMilliseconds)
