@@ -1,6 +1,5 @@
 module MarkdownLinkChecker.Checker
 
-open System
 open System.Net.Http
 open System.IO
 
@@ -8,6 +7,20 @@ open MarkdownLinkChecker.Parser
 open MarkdownLinkChecker.Files
 open MarkdownLinkChecker.Options
 open MarkdownLinkChecker.Timing
+
+module Dictionary =
+    open System.Collections.Generic
+    
+    let empty<'TKey, 'TValue when 'TKey : equality> = Dictionary<'TKey, 'TValue>()
+    
+    let getOrAdd<'TKey, 'TValue> (dictionary: IDictionary<'TKey, 'TValue>) key fn =
+        match dictionary.TryGetValue(key) with
+        | (true, value) ->
+            value
+        | _ ->
+            let value = fn key
+            dictionary.Add(key, value)
+            value
 
 type LinkStatus =
     | Found
@@ -25,33 +38,38 @@ type Status =
     | Valid
     | Invalid
 
-let linkStatusCache = System.Collections.Concurrent.ConcurrentDictionary<string, LinkStatus>()
-
 let private httpClient = new HttpClient()
 
 let private checkUrlLink (options: Options) (url: string) =
-    options.Logger.Normal(sprintf "Checking URL: %s" url)
-    
-    let response =
-        httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url))
-        |> Async.AwaitTask
-        |> Async.RunSynchronously
+    let status, elapsed = time (fun () ->
+        let response =
+            httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url))
+            |> Async.AwaitTask
+            |> Async.RunSynchronously
 
-    if response.IsSuccessStatusCode then Found else NotFound
+        if response.IsSuccessStatusCode then Found else NotFound)
+    
+    options.Logger.Detailed(sprintf "Checked linked URL: %s [%.1fms]" url elapsed.TotalMilliseconds)
+    status
     
 let private checkFileLink (options: Options) (path: string) =
-    options.Logger.Normal(sprintf "Checking file %s" path)
+    let status, elapsed = time (fun () ->
+        if File.Exists(path) then Found else NotFound)
     
-    if File.Exists(path) then Found else NotFound
+    options.Logger.Detailed(sprintf "Checked linked file: %s [%.1fms]"path elapsed.TotalMilliseconds)
+    status
 
-let private checkLinkStatus (options: Options) (document: Document) (link: Link) =
-    match link with
-    | UrlLink(url, _) ->
-        linkStatusCache.GetOrAdd(url, checkUrlLink options)
-    | FileLink(path, _) ->
-        let (File documentPath) = document.File 
-        let fullPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(documentPath), path))
-        linkStatusCache.GetOrAdd(fullPath, checkFileLink options)
+let private checkLinkStatus =
+    let cache = Dictionary.empty
+    
+    fun (options: Options) (document: Document) (link: Link) ->
+        match link with
+        | UrlLink(url, _) ->
+            Dictionary.getOrAdd cache url (checkUrlLink options)
+        | FileLink(path, _) ->
+            let (File documentPath) = document.File 
+            let fullPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(documentPath), path))
+            Dictionary.getOrAdd cache fullPath (checkFileLink options)
         
 let private checkLink (options: Options) document link =
     { Link = link
