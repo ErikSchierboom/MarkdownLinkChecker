@@ -31,7 +31,7 @@ type CheckedLink =
       Status: LinkStatus }
     
 type CheckedDocument =
-    { File: File
+    { File: FilePath
       CheckedLinks: CheckedLink list }
     
 type Status =
@@ -67,17 +67,21 @@ let private checkLinkStatus =
         | UrlLink(url, _) ->
             Dictionary.getOrAdd cache url (checkUrlLink options)
         | FileLink(path, _) ->
-            let (File documentPath) = document.File 
-            let fullPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(documentPath), path))
-            Dictionary.getOrAdd cache fullPath (checkFileLink options)
+            Dictionary.getOrAdd cache document.Path.Absolute (checkFileLink options)
         
 let private checkLink (options: Options) document link =
     { Link = link
       Status = checkLinkStatus options document link }
 
 let private checkDocument (options: Options) (document: Document) =
-    { File = document.File
-      CheckedLinks = document.Links |> List.map (checkLink options document) }
+    options.Logger.Detailed(sprintf "Checking file: %s" document.Path.Relative )
+    
+    let checkedDocument, elapsed = time (fun () ->
+        { File = document.Path
+          CheckedLinks = document.Links |> List.map (checkLink options document) })
+      
+    options.Logger.Normal(sprintf "Checked file: %s [%.1fms]" document.Path.Relative elapsed.TotalMilliseconds)
+    checkedDocument
 
 let private checkedDocumentIsValid checkedDocument =
     checkedDocument.CheckedLinks
@@ -85,11 +89,11 @@ let private checkedDocumentIsValid checkedDocument =
 
 let checkDocuments (options: Options) documents =
     let valid, elapsed = time (fun () ->
-        options.Logger.Normal("Checking links ...")
+        options.Logger.Detailed("Checking links ...")
         let checkedDocuments = documents |> List.map (checkDocument options)   
         let documentsAreValid = checkedDocuments |> List.forall checkedDocumentIsValid
 
         if documentsAreValid then Valid else Invalid)
     
-    options.Logger.Normal(sprintf "Checked links [%.1fms]" elapsed.TotalMilliseconds)
+    options.Logger.Detailed(sprintf "Checked links [%.1fms]" elapsed.TotalMilliseconds)
     valid

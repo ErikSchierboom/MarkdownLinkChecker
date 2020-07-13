@@ -19,7 +19,7 @@ type Link =
     | UrlLink of url: string * location: LinkLocation
     
 type Document =
-    { File: File
+    { Path: FilePath
       Links: Link list }
 
 let private linkReference (inlineLink: LinkInline): string =
@@ -43,24 +43,23 @@ let private parseLink (inlineLink: LinkInline) =
     | UrlReference url -> UrlLink(url, linkLocation inlineLink)
     | FileReference path -> FileLink(path, linkLocation inlineLink)
     
-let private parseLinks (File path) =
-    let markdown = System.IO.File.ReadAllText(path)
+let private parseLinks file =
+    let markdown = System.IO.File.ReadAllText(file.Absolute)
     Markdown.Parse(markdown).Descendants<LinkInline>()
     |> Seq.map parseLink
     |> Seq.toList
 
 let private parseDocument (options: Options) file =
     let document, elapsed = time (fun () ->
-        { File = file
+        { Path = file
           Links = parseLinks file })   
     
-    let (File path) = file
-    options.Logger.Detailed(sprintf "Parsed document %s. %d link(s) found [%.1fms]" path document.Links.Length elapsed.TotalMilliseconds)
+    options.Logger.Detailed(sprintf "Parsed document %s. %d link(s) found [%.1fms]" file.Absolute document.Links.Length elapsed.TotalMilliseconds)
     document
     
 let parseDocuments (options: Options) files =
     let documents, elapsed = time (fun () ->
-        options.Logger.Normal("Parsing Markdown documents ...")
+        options.Logger.Detailed("Parsing Markdown documents ...")
         List.map (parseDocument options) files)
     
     options.Logger.Detailed(sprintf "Parsed Markdown documents [%.1fms]" elapsed.TotalMilliseconds)
