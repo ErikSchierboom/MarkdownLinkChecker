@@ -54,7 +54,7 @@ let private parseDocument (options: Options) file =
         { Path = file
           Links = parseLinks file })   
     
-    options.Logger.Detailed(sprintf "Parsed document %s. %d link(s) found [%.1fms]" file.Absolute document.Links.Length elapsed.TotalMilliseconds)
+    options.Logger.Detailed(sprintf "Parsed document %s. %d link(s) found [%.1fms]" file.Relative document.Links.Length elapsed.TotalMilliseconds)
     document
     
 let parseDocuments (options: Options) files =
