@@ -10,8 +10,8 @@ open MarkdownLinkChecker.Options
 open MarkdownLinkChecker.Timing
 
 type FilePath =
-    { Absolute: FileInfo
-      Relative: FileInfo }
+    { Absolute: string
+      Relative: string }
 
 let private isMarkdownFile (path: string) =
     Path.GetExtension(path) = ".md"
@@ -21,8 +21,8 @@ let toFilePath (directory: string) (relativePath: string) =
     let absolutePath = Path.GetFullPath(directoryPath)
     let relativePath = Path.GetRelativePath(directory, directoryPath)
 
-    { Absolute = FileInfo(absolutePath)
-      Relative = FileInfo(relativePath) }
+    { Absolute = absolutePath
+      Relative = relativePath }
 
 let private filesInDirectory (options: Options) =
     let matcher = Matcher().AddInclude("**/*.md")
@@ -56,7 +56,7 @@ let private filterExcludedFiles (options: Options) files =
     
     let isExcludedFile file =
         excludedFiles options
-        |> Seq.exists (fun excludePath -> file.Absolute.FullName.StartsWith(excludePath.Absolute.FullName, osSpecificStringComparison))
+        |> Seq.exists (fun excludePath -> file.Absolute.StartsWith(excludePath.Absolute, osSpecificStringComparison))
 
     files
     |> Seq.filter (isExcludedFile >> not) 

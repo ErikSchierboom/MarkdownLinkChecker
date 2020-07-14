@@ -67,7 +67,7 @@ let private checkLinkStatus =
         | UrlLink(url, _) ->
             Dictionary.getOrAdd cache url (checkUrlLink options)
         | FileLink(path, _) ->
-            Dictionary.getOrAdd cache path.Absolute.FullName (checkFileLink options)
+            Dictionary.getOrAdd cache path.Absolute (checkFileLink options)
         
 let private checkLink (options: Options) link =
     { Link = link
@@ -77,8 +77,8 @@ let private checkDocument (options: Options) (document: Document) =
     let checkedDocument, elapsed = time (fun () ->
         { File = document.Path
           CheckedLinks = document.Links |> List.map (checkLink options) })
-      
-    options.Logger.Normal(sprintf "Checked file: %s [%.1fms]" document.Path.Relative.Name elapsed.TotalMilliseconds)
+
+    options.Logger.Normal(sprintf "Checked file: %s [%.1fms]" document.Path.Relative elapsed.TotalMilliseconds)
     checkedDocument
 
 let private checkedDocumentIsValid checkedDocument =
