@@ -6,19 +6,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="Tests.fs" />
-        <Content Include="Samples\invalid-file-link.md" />
-        <Content Include="Samples\invalid-url-link.md" />
-        <Content Include="Samples\valid-file-and-url-links.md" />
-        <Content Include="Samples\valid-file-link.md" />
-        <Content Include="Samples\OnlyValid\valid-url-link.md" />
-        <Content Include="Samples\OnlyValid\valid-file-link.md" />
-        <Content Include="Samples\OnlyValid\valid-file-and-url-links.md" />
-        <Content Include="Samples\OnlyValid\multiple-valid-links-to-same-file.md" />
-        <Content Include="Samples\valid-and-invalid-url-links.md" />
-        <Content Include="Samples\multiple-valid-links-to-same-file.md" />
-        <Content Include="Samples\valid-and-invalid-file-links.md" />
-        <Content Include="Samples\valid-url-link.md" />
+        <Compile Include="Runner.fs" />
+        <Compile Include="SingleFileTests.fs" />
+        <Compile Include="MultipleFilesTests.fs" />
+        <Compile Include="DirectoryTests.fs" />
+        <Compile Include="OptionsTests.fs" />
     </ItemGroup>
 
     <ItemGroup>
