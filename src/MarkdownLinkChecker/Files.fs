@@ -16,17 +16,13 @@ type FilePath =
 let private isMarkdownFile (path: string) =
     Path.GetExtension(path) = ".md"
 
-let private toFile (options: Options) (path: string) =
+let toFilePath (options: Options) (path: string) =
     let directoryPath = Path.Combine(options.Directory, path)
     let absolutePath = Path.GetFullPath(directoryPath)
     let relativePath = Path.GetRelativePath(options.Directory, directoryPath)
-    
-    if isMarkdownFile absolutePath then
-        { Absolute = absolutePath
-          Relative = relativePath }
-        |> Some  
-    else
-        None
+
+    { Absolute = absolutePath
+      Relative = relativePath }
 
 let private filesInDirectory (options: Options) =
     let matcher = Matcher().AddInclude("**/*.md")
@@ -35,15 +31,18 @@ let private filesInDirectory (options: Options) =
 
     matchResults.Files
     |> Seq.map (fun fileMatch -> fileMatch.Path)
-    |> Seq.choose (toFile options)
+    |> Seq.filter isMarkdownFile
+    |> Seq.map (toFilePath options)
     
 let private includedFiles (options: Options) =
     options.Files
-    |> Seq.choose (toFile options)
+    |> Seq.filter isMarkdownFile
+    |> Seq.map (toFilePath options)
     
 let private excludedFiles (options: Options) =
     options.Exclude
-    |> Seq.choose (toFile options)
+    |> Seq.filter isMarkdownFile
+    |> Seq.map (toFilePath options)
 
 let private checkAllFilesInDirectory (options: Options) =
     List.isEmpty options.Files
@@ -78,4 +77,3 @@ let findFiles (options: Options): FilePath list =
 
     options.Logger.Detailed(sprintf "Found %d files [%.1fms]" files.Length elapsed.TotalMilliseconds)
     files
-        

@@ -15,7 +15,7 @@ type LinkLocation =
       Column: int }
     
 type Link =
-    | FileLink of path: string * location: LinkLocation
+    | FileLink of path: FilePath * location: LinkLocation
     | UrlLink of url: string * location: LinkLocation
     
 type Document =
@@ -38,21 +38,21 @@ let private (|UrlReference|FileReference|) (reference: string) =
     
     if isUrlReference then UrlReference reference else FileReference reference
 
-let private parseLink (inlineLink: LinkInline) =
+let private parseLink (options: Options) documentPath (inlineLink: LinkInline) =
     match linkReference inlineLink with
     | UrlReference url -> UrlLink(url, linkLocation inlineLink)
-    | FileReference path -> FileLink(path, linkLocation inlineLink)
+    | FileReference path -> FileLink(toFilePath options (System.IO.Path.Combine(documentPath.Absolute, path)), linkLocation inlineLink)
     
-let private parseLinks file =
+let private parseLinks (options: Options) file =
     let markdown = System.IO.File.ReadAllText(file.Absolute)
     Markdown.Parse(markdown).Descendants<LinkInline>()
-    |> Seq.map parseLink
+    |> Seq.map (parseLink options file)
     |> Seq.toList
 
 let private parseDocument (options: Options) file =
     let document, elapsed = time (fun () ->
         { Path = file
-          Links = parseLinks file })   
+          Links = parseLinks options file })   
     
     options.Logger.Detailed(sprintf "Parsed document %s. %d link(s) found [%.1fms]" file.Relative document.Links.Length elapsed.TotalMilliseconds)
     document
