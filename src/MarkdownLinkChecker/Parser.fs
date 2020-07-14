@@ -41,7 +41,7 @@ let private (|UrlReference|FileReference|) (reference: string) =
 let private parseLink (options: Options) documentPath (inlineLink: LinkInline) =
     match linkReference inlineLink with
     | UrlReference url -> UrlLink(url, linkLocation inlineLink)
-    | FileReference path -> FileLink(toFilePath options (System.IO.Path.Combine(documentPath.Absolute, path)), linkLocation inlineLink)
+    | FileReference path -> FileLink(toFilePath options (System.IO.Path.Combine(System.IO.Path.GetDirectoryName(documentPath.Absolute), path)), linkLocation inlineLink)
     
 let private parseLinks (options: Options) file =
     let markdown = System.IO.File.ReadAllText(file.Absolute)
