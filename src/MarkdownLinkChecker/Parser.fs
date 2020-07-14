@@ -57,13 +57,13 @@ let private parseDocument (options: Options) file =
         { Path = file
           Links = parseLinks options file })   
     
-    options.Logger.Detailed(sprintf "Parsed document %s. %d link(s) found [%.1fms]" file.Relative document.Links.Length elapsed.TotalMilliseconds)
+    options.Logger.Log(sprintf "Parsed document %s. %d link(s) found [%.1fms]" file.Relative document.Links.Length elapsed.TotalMilliseconds)
     document
     
 let parseDocuments (options: Options) files =
     let documents, elapsed = time (fun () ->
-        options.Logger.Detailed("Parsing Markdown documents ...")
+        options.Logger.Log("Parsing Markdown documents ...")
         List.map (parseDocument options) files)
     
-    options.Logger.Detailed(sprintf "Parsed Markdown documents [%.1fms]" elapsed.TotalMilliseconds)
+    options.Logger.Log(sprintf "Parsed %d Markdown documents [%.1fms]" documents.Length elapsed.TotalMilliseconds)
     documents

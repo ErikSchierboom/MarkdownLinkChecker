@@ -11,7 +11,7 @@ type Options =
       Logger: Logger }
 
 type CommandLineOptions =
-    { [<Option('v', "verbosity", Required = false, HelpText = "Set the verbosity level. Allowed values are q[uiet], n[ormal] (default) and d[etailed].")>]
+    { [<Option('v', "verbosity", Required = false, HelpText = "Set the verbosity level. Allowed values are q[uiet] and n[ormal] (default).")>]
       Verbosity: string option
       
       [<Option('d', "directory", Required = false, HelpText = "The directory to operate on. Any relative file or directory paths specified in other options will be relative to this directory. If not specified, the working directory is used.")>]
@@ -27,7 +27,6 @@ let private parseVerbosity (verbosity: string) =
     match verbosity.ToLower() with
     | "q" | "quiet" -> Quiet
     | "n" | "normal" -> Normal
-    | "d" | "detailed" -> Detailed
     | _ -> Normal
     
 let private fromCommandLineOptions (options: CommandLineOptions) =
@@ -53,12 +52,12 @@ let private log (options: Options) (commandLineOptions: CommandLineOptions) =
     let files = logFiles commandLineOptions.Files
     let exclude = logFiles commandLineOptions.Exclude
     
-    options.Logger.Detailed("Running with options:")
-    options.Logger.Detailed(sprintf "Verbosity: %s" verbosity)   
-    options.Logger.Detailed(sprintf "Directory: %s" directory)   
-    options.Logger.Detailed(sprintf "Files: %s" files)
-    options.Logger.Detailed(sprintf "Exclude: %s" exclude)
-    options.Logger.Detailed("")
+    options.Logger.Log("Running with options:")
+    options.Logger.Log(sprintf "Verbosity: %s" verbosity)   
+    options.Logger.Log(sprintf "Directory: %s" directory)   
+    options.Logger.Log(sprintf "Files: %s" files)
+    options.Logger.Log(sprintf "Exclude: %s" exclude)
+    options.Logger.Log("")
 
 let (|ParseSuccess|ParseFailure|) (result: ParserResult<CommandLineOptions>) =
     match result with

@@ -65,15 +65,15 @@ let findFiles (options: Options): FilePath list =
     let files, elapsed = time (fun () ->
         let files = 
             if checkAllFilesInDirectory options then
-                options.Logger.Detailed(sprintf "Finding Markdown files in directory %s ..." options.Directory)
+                options.Logger.Log(sprintf "Finding Markdown files in directory %s ..." options.Directory)
                 filesInDirectory options
             else
-                options.Logger.Detailed("Finding specified Markdown files ...")
+                options.Logger.Log("Finding specified Markdown files ...")
                 includedFiles options
 
         files
         |> filterExcludedFiles options
         |> Seq.toList)
 
-    options.Logger.Detailed(sprintf "Found %d files [%.1fms]" files.Length elapsed.TotalMilliseconds)
+    options.Logger.Log(sprintf "Found %d files [%.1fms]" files.Length elapsed.TotalMilliseconds)
     files

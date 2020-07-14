@@ -49,14 +49,14 @@ let private checkUrlLink (options: Options) (url: string) =
 
         if response.IsSuccessStatusCode then Found else NotFound)
     
-    options.Logger.Detailed(sprintf "Checked linked URL: %s [%.1fms]" url elapsed.TotalMilliseconds)
+    options.Logger.Log(sprintf "Checked linked URL: %s [%.1fms]" url elapsed.TotalMilliseconds)
     status
     
 let private checkFileLink (options: Options) (path: string) =
     let status, elapsed = time (fun () ->
         if File.Exists(path) then Found else NotFound)
     
-    options.Logger.Detailed(sprintf "Checked linked file: %s [%.1fms]"path elapsed.TotalMilliseconds)
+    options.Logger.Log(sprintf "Checked linked file: %s [%.1fms]"path elapsed.TotalMilliseconds)
     status
 
 let private checkLinkStatus =
@@ -78,7 +78,7 @@ let private checkDocument (options: Options) (document: Document) =
         { File = document.Path
           CheckedLinks = document.Links |> List.map (checkLink options) })
 
-    options.Logger.Normal(sprintf "Checked file: %s [%.1fms]" document.Path.Relative elapsed.TotalMilliseconds)
+    options.Logger.Log(sprintf "Checked file: %s [%.1fms]" document.Path.Relative elapsed.TotalMilliseconds)
     checkedDocument
 
 let private checkedDocumentIsValid checkedDocument =
@@ -92,5 +92,5 @@ let checkDocuments (options: Options) documents =
 
         if documentsAreValid then Valid else Invalid)
     
-    options.Logger.Detailed(sprintf "Checked links [%.1fms]" elapsed.TotalMilliseconds)
+    options.Logger.Log(sprintf "Checked links [%.1fms]" elapsed.TotalMilliseconds)
     valid
