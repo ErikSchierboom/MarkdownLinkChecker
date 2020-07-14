@@ -10,19 +10,19 @@ open MarkdownLinkChecker.Options
 open MarkdownLinkChecker.Timing
 
 type FilePath =
-    { Absolute: string
-      Relative: string }
+    { Absolute: FileInfo
+      Relative: FileInfo }
 
 let private isMarkdownFile (path: string) =
     Path.GetExtension(path) = ".md"
 
-let toFilePath (options: Options) (path: string) =
-    let directoryPath = Path.Combine(options.Directory, path)
+let toFilePath (directory: string) (relativePath: string) =
+    let directoryPath = Path.Combine(directory, relativePath)
     let absolutePath = Path.GetFullPath(directoryPath)
-    let relativePath = Path.GetRelativePath(options.Directory, directoryPath)
+    let relativePath = Path.GetRelativePath(directory, directoryPath)
 
-    { Absolute = absolutePath
-      Relative = relativePath }
+    { Absolute = FileInfo(absolutePath)
+      Relative = FileInfo(relativePath) }
 
 let private filesInDirectory (options: Options) =
     let matcher = Matcher().AddInclude("**/*.md")
@@ -32,17 +32,17 @@ let private filesInDirectory (options: Options) =
     matchResults.Files
     |> Seq.map (fun fileMatch -> fileMatch.Path)
     |> Seq.filter isMarkdownFile
-    |> Seq.map (toFilePath options)
+    |> Seq.map (toFilePath options.Directory)
     
 let private includedFiles (options: Options) =
     options.Files
     |> Seq.filter isMarkdownFile
-    |> Seq.map (toFilePath options)
+    |> Seq.map (toFilePath options.Directory)
     
 let private excludedFiles (options: Options) =
     options.Exclude
     |> Seq.filter isMarkdownFile
-    |> Seq.map (toFilePath options)
+    |> Seq.map (toFilePath options.Directory)
 
 let private checkAllFilesInDirectory (options: Options) =
     List.isEmpty options.Files
@@ -56,7 +56,7 @@ let private filterExcludedFiles (options: Options) files =
     
     let isExcludedFile file =
         excludedFiles options
-        |> Seq.exists (fun excludePath -> file.Absolute.StartsWith(excludePath.Absolute, osSpecificStringComparison))
+        |> Seq.exists (fun excludePath -> file.Absolute.FullName.StartsWith(excludePath.Absolute.FullName, osSpecificStringComparison))
 
     files
     |> Seq.filter (isExcludedFile >> not) 
