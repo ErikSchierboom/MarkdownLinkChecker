@@ -26,3 +26,15 @@ let ``Exclude option`` () =
 let ``Files option`` () =
     let results = run [| "--files"; "valid-url-link.md"; "invalid-file-link.md" |]
     Assert.Equal(1, results.ExitCode)
+
+[<Fact>]
+[<ExecuteInDirectory("Samples/OnlyValid")>]
+let ``Verbosity normal`` () =
+    let results = run [| "--verbosity"; "normal" |]
+    Assert.NotEmpty(results.Output)
+
+[<Fact>]
+[<ExecuteInDirectory("Samples/OnlyValid")>]
+let ``Verbosity quiet`` () =
+    let results = run [| "--verbosity"; "quiet" |]
+    Assert.Empty(results.Output)
