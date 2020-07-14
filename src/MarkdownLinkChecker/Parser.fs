@@ -8,7 +8,6 @@ open Markdig.Syntax.Inlines
 
 open MarkdownLinkChecker.Files
 open MarkdownLinkChecker.Options
-open MarkdownLinkChecker.Timing
 
 type LinkLocation =
     { Line: int
@@ -53,17 +52,8 @@ let private parseLinks (options: Options) file =
     |> Seq.toList
 
 let private parseDocument (options: Options) file =
-    let document, elapsed = time (fun () ->
-        { Path = file
-          Links = parseLinks options file })   
-    
-    options.Logger.Log(sprintf "Parsed document %s. %d link(s) found [%.1fms]" file.Relative document.Links.Length elapsed.TotalMilliseconds)
-    document
+    { Path = file
+      Links = parseLinks options file }
     
 let parseDocuments (options: Options) files =
-    let documents, elapsed = time (fun () ->
-        options.Logger.Log("Parsing Markdown documents ...")
-        List.map (parseDocument options) files)
-    
-    options.Logger.Log(sprintf "Parsed %d Markdown documents [%.1fms]" documents.Length elapsed.TotalMilliseconds)
-    documents
+    List.map (parseDocument options) files

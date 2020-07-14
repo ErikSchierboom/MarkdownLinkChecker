@@ -33,6 +33,9 @@ type CheckedLink =
 type CheckedDocument =
     { File: FilePath
       CheckedLinks: CheckedLink list }
+    member this.IsValid =
+        this.CheckedLinks
+        |> List.forall (fun checkedLink -> checkedLink.Status = Found)
     
 type Status =
     | Valid
@@ -40,57 +43,42 @@ type Status =
 
 let private httpClient = new HttpClient()
 
-let private checkUrlLink (options: Options) (url: string) =
-    let status, elapsed = time (fun () ->
-        let response =
-            httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url))
-            |> Async.AwaitTask
-            |> Async.RunSynchronously
+let private checkUrlLink (url: string) =
+    let response =
+        httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url))
+        |> Async.AwaitTask
+        |> Async.RunSynchronously
 
-        if response.IsSuccessStatusCode then Found else NotFound)
+    if response.IsSuccessStatusCode then Found else NotFound
     
-    options.Logger.Log(sprintf "Checked linked URL: %s [%.1fms]" url elapsed.TotalMilliseconds)
-    status
-    
-let private checkFileLink (options: Options) (path: string) =
-    let status, elapsed = time (fun () ->
-        if File.Exists(path) then Found else NotFound)
-    
-    options.Logger.Log(sprintf "Checked linked file: %s [%.1fms]"path elapsed.TotalMilliseconds)
-    status
+let private checkFileLink (path: string) =
+    if File.Exists(path) then Found else NotFound
 
 let private checkLinkStatus =
     let cache = Dictionary.empty
     
-    fun (options: Options) (link: Link) ->
+    fun (link: Link) ->
         match link with
         | UrlLink(url, _) ->
-            Dictionary.getOrAdd cache url (checkUrlLink options)
+            Dictionary.getOrAdd cache url checkUrlLink
         | FileLink(path, _) ->
-            Dictionary.getOrAdd cache path.Absolute (checkFileLink options)
+            Dictionary.getOrAdd cache path.Absolute checkFileLink
         
-let private checkLink (options: Options) link =
+let private checkLink link =
     { Link = link
-      Status = checkLinkStatus options link }
+      Status = checkLinkStatus link }
 
 let private checkDocument (options: Options) (document: Document) =
     let checkedDocument, elapsed = time (fun () ->
         { File = document.Path
-          CheckedLinks = document.Links |> List.map (checkLink options) })
+          CheckedLinks = document.Links |> List.map checkLink })
 
-    options.Logger.Log(sprintf "Checked file: %s [%.1fms]" document.Path.Relative elapsed.TotalMilliseconds)
+    let status = if checkedDocument.IsValid then '✅' else '❌'
+    options.Logger.Log(sprintf "%c %s %.0fms" status document.Path.Relative elapsed.TotalMilliseconds)
     checkedDocument
 
-let private checkedDocumentIsValid checkedDocument =
-    checkedDocument.CheckedLinks
-    |> List.forall (fun checkedLink -> checkedLink.Status = Found)
-
 let checkDocuments (options: Options) documents =
-    let valid, elapsed = time (fun () ->
-        let checkedDocuments = documents |> List.map (checkDocument options)   
-        let documentsAreValid = checkedDocuments |> List.forall checkedDocumentIsValid
+    let checkedDocuments = documents |> List.map (checkDocument options)   
+    let documentsAreValid = checkedDocuments |> List.forall (fun checkedDocument -> checkedDocument.IsValid)
 
-        if documentsAreValid then Valid else Invalid)
-    
-    options.Logger.Log(sprintf "Checked links [%.1fms]" elapsed.TotalMilliseconds)
-    valid
+    if documentsAreValid then Valid else Invalid

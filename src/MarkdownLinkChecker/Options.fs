@@ -34,38 +34,11 @@ let private fromCommandLineOptions (options: CommandLineOptions) =
       Exclude = options.Exclude |> List.ofSeq
       Directory = options.Directory |> Option.defaultWith System.IO.Directory.GetCurrentDirectory
       Logger = options.Verbosity |> Option.map parseVerbosity |> Option.defaultValue Normal |> Logger }
-    
-let private log (options: Options) (commandLineOptions: CommandLineOptions) =
-    let notSpecified = "(not specified)"
-    
-    let verbosity =
-        commandLineOptions.Verbosity
-        |> Option.map parseVerbosity
-        |> Option.map string
-        |> Option.defaultValue notSpecified
-        
-    let directory =
-        commandLineOptions.Directory
-        |> Option.defaultValue notSpecified 
-    
-    let logFiles files = if Seq.isEmpty files then notSpecified else String.concat ", " files
-    let files = logFiles commandLineOptions.Files
-    let exclude = logFiles commandLineOptions.Exclude
-    
-    options.Logger.Log("Running with options:")
-    options.Logger.Log(sprintf "Verbosity: %s" verbosity)   
-    options.Logger.Log(sprintf "Directory: %s" directory)   
-    options.Logger.Log(sprintf "Files: %s" files)
-    options.Logger.Log(sprintf "Exclude: %s" exclude)
-    options.Logger.Log("")
 
 let (|ParseSuccess|ParseFailure|) (result: ParserResult<CommandLineOptions>) =
     match result with
     | :? (Parsed<CommandLineOptions>) as parsedOptions ->
-        let commandLineOptions = parsedOptions.Value 
-        let options = fromCommandLineOptions commandLineOptions
-        log options commandLineOptions
-
+        let options = fromCommandLineOptions parsedOptions.Value
         ParseSuccess options 
     | _ ->
         ParseFailure
