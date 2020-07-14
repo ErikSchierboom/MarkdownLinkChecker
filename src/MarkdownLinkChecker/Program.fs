@@ -10,6 +10,8 @@ type ExitCode =
     | Error = 1
 
 // TODO: add format script
+// TODO: add instructions to README
+// TODO: check links in parallel
 
 [<EntryPoint>]
 let main argv =
@@ -17,8 +19,8 @@ let main argv =
     | ParseSuccess options ->
         let status =
             findFiles options
-            |> (parseDocuments options)
-            |> (checkDocuments options)
+            |> parseDocuments options
+            |> checkDocuments options
 
         match status with
         | Valid -> int ExitCode.Ok
