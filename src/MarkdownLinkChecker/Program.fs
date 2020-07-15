@@ -1,15 +1,14 @@
-﻿module MarkdownLinkChecker.Program
+module MarkdownLinkChecker.Program
 
 open MarkdownLinkChecker.Options
 open MarkdownLinkChecker.Files
 open MarkdownLinkChecker.Parser
 open MarkdownLinkChecker.Checker
-    
+
 type ExitCode =
     | Ok = 0
     | Error = 1
 
-// TODO: add format script
 // TODO: add instructions to README
 // TODO: check links in parallel
 
@@ -25,5 +24,4 @@ let main argv =
         match status with
         | Valid -> int ExitCode.Ok
         | Invalid -> int ExitCode.Error
-    | ParseFailure ->
-        int ExitCode.Error 
+    | ParseFailure -> int ExitCode.Error

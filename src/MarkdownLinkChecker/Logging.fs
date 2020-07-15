@@ -5,9 +5,8 @@ type Verbosity =
     | Normal
 
 type Logger(verbosity: Verbosity) =
+
     member __.Log(message) =
-        if verbosity = Normal then
-            printfn "%s" message
-    
+        if verbosity = Normal then printfn "%s" message
+
     member __.Verbosity = verbosity
-    
