@@ -25,18 +25,18 @@ type LinkStatus =
     | Found
     | NotFound
 
+type Status =
+    | Valid
+    | Invalid
+
 type CheckedLink =
     { Link: Link
       Status: LinkStatus }
 
 type CheckedDocument =
     { File: FilePath
-      CheckedLinks: CheckedLink list }
-    member this.IsValid = this.CheckedLinks |> List.forall (fun checkedLink -> checkedLink.Status = Found)
-
-type Status =
-    | Valid
-    | Invalid
+      CheckedLinks: CheckedLink list
+      Status: Status }
 
 let private httpClient = new HttpClient()
 
@@ -63,20 +63,32 @@ let private checkLink link =
     { Link = link
       Status = checkLinkStatus link }
 
+let private checkLinks (document: Document) = document.Links |> List.map checkLink
+
+let private checkedDocumentStatus (checkedLinks: CheckedLink list) =
+    if checkedLinks |> List.forall (fun checkedLink -> checkedLink.Status = Found)
+    then Valid
+    else Invalid
+
 let private checkDocument (options: Options) (document: Document) =
     let checkedDocument, elapsed =
         time (fun () ->
+            let checkedLinks = checkLinks document
+
             { File = document.Path
-              CheckedLinks = document.Links |> List.map checkLink })
+              CheckedLinks = checkedLinks
+              Status = checkedDocumentStatus checkedLinks })
 
-    let status =
-        if checkedDocument.IsValid then '✅' else '❌'
+    let statusIcon =
+        match checkedDocument.Status with
+        | Valid -> '✅'
+        | Invalid -> '❌'
 
-    options.Logger.Log(sprintf "%c %s %.0fms" status document.Path.Relative elapsed.TotalMilliseconds)
+    options.Logger.Log(sprintf "%c %s %.0fms" statusIcon document.Path.Relative elapsed.TotalMilliseconds)
     checkedDocument
 
 let checkDocuments (options: Options) documents =
     let checkedDocuments = documents |> List.map (checkDocument options)
-    let documentsAreValid = checkedDocuments |> List.forall (fun checkedDocument -> checkedDocument.IsValid)
+    let documentsAreValid = checkedDocuments |> List.forall (fun checkedDocument -> checkedDocument.Status = Valid)
 
     if documentsAreValid then Valid else Invalid
