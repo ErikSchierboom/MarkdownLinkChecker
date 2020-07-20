@@ -5,8 +5,14 @@ type Verbosity =
     | Normal
 
 type Logger(verbosity: Verbosity) =
+    
+    do 
+        System.Console.OutputEncoding <- System.Text.Encoding.UTF8
 
-    member __.Log(message) =
-        if verbosity = Normal then printfn "%s" message
+    member __.Normal(message) =
+        if verbosity = Normal || verbosity = Detailed then printfn "%s" message
+        
+    member __.Detailed(message) =
+        if verbosity = Detailed then printfn "%s" message
 
     member __.Verbosity = verbosity
