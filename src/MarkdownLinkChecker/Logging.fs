@@ -3,6 +3,7 @@ module MarkdownLinkChecker.Logging
 type Verbosity =
     | Quiet
     | Normal
+    | Detailed
 
 type Logger(verbosity: Verbosity) =
     

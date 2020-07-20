@@ -12,7 +12,7 @@ type Options =
 
 type CommandLineOptions =
     { [<Option('v', "verbosity", Required = false,
-               HelpText = "Set the verbosity level. Allowed values are q[uiet] and n[ormal] (default).")>]
+               HelpText = "Set the verbosity level. Allowed values are q[uiet], n[ormal] (default) and [d]etailed.")>]
       Verbosity: string option
 
       [<Option('d', "directory", Required = false,
@@ -33,8 +33,8 @@ let private parseVerbosity (verbosity: string) =
     match verbosity.ToLower() with
     | "q"
     | "quiet" -> Quiet
-    | "n"
-    | "normal" -> Normal
+    | "d"
+    | "detailed" -> Detailed
     | _ -> Normal
 
 let private fromCommandLineOptions (options: CommandLineOptions) =
