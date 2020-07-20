@@ -39,16 +39,23 @@ let private (|UrlReference|FileReference|) (reference: string) =
 
 let private parseLink (options: Options) documentPath (inlineLink: LinkInline) =
     match linkReference inlineLink with
-    | UrlReference url -> UrlLink(url, linkLocation inlineLink)
+    | UrlReference url ->
+        if options.Mode.CheckUrls then
+            Some (UrlLink(url, linkLocation inlineLink))
+        else
+            None
     | FileReference path ->
-        let pathRelativeToDocument =
-            System.IO.Path.Combine(System.IO.Path.GetDirectoryName(documentPath.Absolute), path)
-        FileLink(toFilePath options.Directory pathRelativeToDocument, linkLocation inlineLink)
+        if options.Mode.CheckFiles then
+            let pathRelativeToDocument =
+                System.IO.Path.Combine(System.IO.Path.GetDirectoryName(documentPath.Absolute), path)
+            Some (FileLink(toFilePath options.Directory pathRelativeToDocument, linkLocation inlineLink))
+        else
+            None
 
 let private parseLinks (options: Options) file =
     let markdown = System.IO.File.ReadAllText(file.Absolute)
     Markdown.Parse(markdown).Descendants<LinkInline>()
-    |> Seq.map (parseLink options file)
+    |> Seq.choose (parseLink options file)
     |> Seq.toList
 
 let private parseDocument (options: Options) file =

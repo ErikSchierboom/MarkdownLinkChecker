@@ -4,11 +4,20 @@ open MarkdownLinkChecker.Logging
 
 open CommandLine
 
+type Mode =
+    | CheckAllLinks
+    | CheckFileLinks
+    | CheckUrlLinks
+    with
+        member this.CheckUrls = this = CheckAllLinks || this = CheckUrlLinks 
+        member this.CheckFiles = this = CheckAllLinks || this = CheckFileLinks 
+
 type Options =
     { Directory: string
       Files: string list
       Exclude: string list
-      Logger: Logger }
+      Logger: Logger
+      Mode: Mode }
 
 type CommandLineOptions =
     { [<Option('v', "verbosity", Required = false,
@@ -27,7 +36,11 @@ type CommandLineOptions =
       [<Option('f', "files", Required = false,
                HelpText =
                    "A list of relative Markdown file or directory paths to include in formatting. All Markdown files are formatted if empty.")>]
-      Files: string seq }
+      Files: string seq
+      
+      [<Option('m', "mode", Required = false,
+               HelpText = "Which links to check. Allowed values are f[iles], u[rls] and a[ll] (default).")>]
+      Mode: string option }
 
 let private parseVerbosity (verbosity: string) =
     match verbosity.ToLower() with
@@ -37,6 +50,14 @@ let private parseVerbosity (verbosity: string) =
     | "detailed" -> Detailed
     | _ -> Normal
 
+let private parseMode (mode: string) =
+    match mode.ToLower() with
+    | "f"
+    | "files" -> CheckFileLinks
+    | "u"
+    | "urls" -> CheckUrlLinks
+    | _ -> CheckAllLinks
+
 let private fromCommandLineOptions (options: CommandLineOptions) =
     { Files = options.Files |> List.ofSeq
       Exclude = options.Exclude |> List.ofSeq
@@ -45,7 +66,11 @@ let private fromCommandLineOptions (options: CommandLineOptions) =
           options.Verbosity
           |> Option.map parseVerbosity
           |> Option.defaultValue Normal
-          |> Logger }
+          |> Logger
+      Mode =
+          options.Mode
+          |> Option.map parseMode
+          |> Option.defaultValue CheckAllLinks }
 
 let (|ParseSuccess|ParseFailure|) (result: ParserResult<CommandLineOptions>) =
     match result with

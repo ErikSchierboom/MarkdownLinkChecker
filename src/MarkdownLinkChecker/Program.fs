@@ -11,7 +11,6 @@ type ExitCode =
 
 // TODO: add instructions to README
 // TODO: check links in parallel
-// TODO: add option to only check file and/or url links
 // TODO: do performance analysis (e.g. using Seq/Array/List)
 
 [<EntryPoint>]
