@@ -51,24 +51,45 @@ let private linkValue (link: Link) =
     | FileLink(path, _) -> path.Absolute
 
 let private checkUrlLink (options: Options) (url: string) =
-    let urlLinkStatus, elapsed =
-        time (fun () ->
-            let response =
-                httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url))
-                |> Async.AwaitTask
-                |> Async.RunSynchronously
+    async {
+        let! urlLinkStatus, elapsed =
+            timeAsync (fun () ->
+                async {
+                    let! response =
+                        httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url))
+                        |> Async.AwaitTask
 
-            if response.IsSuccessStatusCode then Found else NotFound)
+                    return if response.IsSuccessStatusCode then Found else NotFound
+                })
 
-    options.Logger.Detailed(sprintf "%c %s %.0fms" (linkStatusIcon urlLinkStatus) url elapsed.TotalMilliseconds)
-    urlLinkStatus
+        options.Logger.Detailed(sprintf "%c %s %.0fms" (linkStatusIcon urlLinkStatus) url elapsed.TotalMilliseconds)
+        return urlLinkStatus
+    }
 
-let private checkFileLink (options: Options) (path: string) =
-    let fileLinkStatus, elapsed =
-        time (fun () -> if File.Exists(path) then Found else NotFound)
+let private checkFileLink (options: Options) (link: string) =
+    async {
+        let! fileLinkStatus, elapsed =
+            timeAsync (fun () -> async {
+                return if File.Exists(path) then Found else NotFound
+            })
+        
+        options.Logger.Detailed(sprintf "%c %s %.0fms" (linkStatusIcon fileLinkStatus) path elapsed.TotalMilliseconds)    
+        return fileLinkStatus
+    }
     
-    options.Logger.Detailed(sprintf "%c %s %.0fms" (linkStatusIcon fileLinkStatus) path elapsed.TotalMilliseconds)    
-    fileLinkStatus
+let private checkLink (options: Options) (link: Link) =
+    match link with
+    | UrlLink(url, _) -> checkUrlLink options url
+    | FileLink(path, _) -> checkFileLink options path.Absolute
+    
+let private checkLinks (options: Options) (links: Link list) =
+    links
+    |> Seq.distinctBy (linkValue)
+    |> Seq.map (fun link -> linkValue link, checkLink options link)
+    |> Async.Parallel
+    |> Async.RunSynchronously
+    |> Map.ofSeq
+    
 
 let private checkLinkStatus (options: Options) =
     let cache = Dictionary.empty
