@@ -10,7 +10,6 @@ type ExitCode =
     | Error = 1
 
 // TODO: add instructions to README
-// TODO: check links in parallel
 // TODO: do performance analysis (e.g. using Seq/Array/List)
 
 [<EntryPoint>]

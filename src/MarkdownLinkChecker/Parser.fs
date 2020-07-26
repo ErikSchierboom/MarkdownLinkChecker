@@ -2,6 +2,7 @@ module MarkdownLinkChecker.Parser
 
 open System
 
+open System.Threading.Tasks
 open Markdig
 open Markdig.Syntax
 open Markdig.Syntax.Inlines
@@ -53,13 +54,25 @@ let private parseLink (options: Options) documentPath (inlineLink: LinkInline) =
             None
 
 let private parseLinks (options: Options) file =
-    let markdown = System.IO.File.ReadAllText(file.Absolute)
-    Markdown.Parse(markdown).Descendants<LinkInline>()
-    |> Seq.choose (parseLink options file)
-    |> Seq.toList
+    async {
+        let markdown = System.IO.File.ReadAllText(file.Absolute)
+        return
+            Markdown.Parse(markdown).Descendants<LinkInline>()
+            |> Seq.choose (parseLink options file)
+            |> Seq.toList
+    }
 
 let private parseDocument (options: Options) file =
-    { Path = file
-      Links = parseLinks options file }
+    async {
+        let! links = parseLinks options file
+        return
+          { Path = file
+            Links = links }
+    }
 
-let parseDocuments (options: Options) files = List.map (parseDocument options) files
+let parseDocuments (options: Options) files =
+    files
+    |> Seq.map (parseDocument options)
+    |> Async.Parallel
+    |> Async.RunSynchronously
+    |> Array.toList 

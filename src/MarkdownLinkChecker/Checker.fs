@@ -63,10 +63,10 @@ let private checkUrlLink (options: Options) (url: string) =
                 })
 
         options.Logger.Detailed(sprintf "%c %s %.0fms" (linkStatusIcon urlLinkStatus) url elapsed.TotalMilliseconds)
-        return urlLinkStatus
+        return (url, urlLinkStatus)
     }
 
-let private checkFileLink (options: Options) (link: string) =
+let private checkFileLink (options: Options) (path: string) =
     async {
         let! fileLinkStatus, elapsed =
             timeAsync (fun () -> async {
@@ -74,7 +74,7 @@ let private checkFileLink (options: Options) (link: string) =
             })
         
         options.Logger.Detailed(sprintf "%c %s %.0fms" (linkStatusIcon fileLinkStatus) path elapsed.TotalMilliseconds)    
-        return fileLinkStatus
+        return (path, fileLinkStatus)
     }
     
 let private checkLink (options: Options) (link: Link) =
@@ -82,28 +82,21 @@ let private checkLink (options: Options) (link: Link) =
     | UrlLink(url, _) -> checkUrlLink options url
     | FileLink(path, _) -> checkFileLink options path.Absolute
     
-let private checkLinks (options: Options) (links: Link list) =
-    links
+let private checkLinks (options: Options) (documents: Document list) =
+    documents
+    |> Seq.collect (fun document -> document.Links)
     |> Seq.distinctBy (linkValue)
-    |> Seq.map (fun link -> linkValue link, checkLink options link)
+    |> Seq.map (checkLink options)
     |> Async.Parallel
     |> Async.RunSynchronously
     |> Map.ofSeq
-    
 
-let private checkLinkStatus (options: Options) =
-    let cache = Dictionary.empty
+let private toCheckedLinks (checkedLinks: Map<string, LinkStatus>) (document: Document) =
+    let toCheckedLink link =
+        { Link = link
+          Status = Map.find (linkValue link) checkedLinks }
 
-    fun (link: Link) ->
-        match link with
-        | UrlLink(url, _) -> Dictionary.getOrAdd cache url (checkUrlLink options)
-        | FileLink(path, _) -> Dictionary.getOrAdd cache path.Absolute (checkFileLink options)
-
-let private toCheckedLink (options: Options) link =
-    { Link = link
-      Status = checkLinkStatus options link }
-
-let private toCheckedLinks (options: Options) (document: Document) = document.Links |> List.map (toCheckedLink options)
+    List.map toCheckedLink document.Links
 
 let private checkedDocumentStatus (checkedLinks: CheckedLink list) =
     if checkedLinks |> List.forall (fun checkedLink -> checkedLink.Status = Found)
@@ -115,8 +108,8 @@ let private statusIcon (status: Status) =
     | Valid -> '✅'
     | Invalid -> '❌'
 
-let private checkDocument (options: Options) (document: Document) =
-    let checkedLinks = toCheckedLinks options document
+let private checkDocument (options: Options) (checkedLinks: Map<string, LinkStatus>) (document: Document) =
+    let checkedLinks = toCheckedLinks checkedLinks document
     let checkedDocument =
         { File = document.Path
           CheckedLinks = checkedLinks
@@ -125,8 +118,9 @@ let private checkDocument (options: Options) (document: Document) =
     options.Logger.Normal(sprintf "%c %s" (statusIcon checkedDocument.Status) document.Path.Relative)
     checkedDocument
 
-let checkDocuments (options: Options) documents =
-    let checkedDocuments = documents |> List.map (checkDocument options)
+let checkDocuments (options: Options) (documents: Document list) =
+    let checkedLinks = checkLinks options documents
+    let checkedDocuments = documents |> List.map (checkDocument options checkedLinks)
     let documentsAreValid = checkedDocuments |> List.forall (fun checkedDocument -> checkedDocument.Status = Valid)
 
     if documentsAreValid then Valid else Invalid
