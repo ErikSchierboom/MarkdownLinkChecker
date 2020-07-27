@@ -9,6 +9,7 @@ type ExitCode =
     | Ok = 0
     | Error = 1
 
+// TODO: output errors
 // TODO: cleanup empty lines in loggin output
 // TODO: add instructions to README
 // TODO: do performance analysis (e.g. using Seq/Array/List)

@@ -20,7 +20,7 @@ type Link =
 
 type Document =
     { Path: FilePath
-      Links: Link list }
+      Links: Link[] }
 
 let private linkReference (inlineLink: LinkInline): string =
     match Option.ofObj inlineLink.Reference with
@@ -59,7 +59,7 @@ let private parseLinks (options: Options) file =
         return
             Markdown.Parse(markdown).Descendants<LinkInline>()
             |> Seq.choose (parseLink options file)
-            |> Seq.toList
+            |> Seq.toArray
     }
 
 let private parseDocument (options: Options) file =
@@ -75,4 +75,3 @@ let parseDocuments (options: Options) files =
     |> Seq.map (parseDocument options)
     |> Async.Parallel
     |> Async.RunSynchronously
-    |> Array.toList 

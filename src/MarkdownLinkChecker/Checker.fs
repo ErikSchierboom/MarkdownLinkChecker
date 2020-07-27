@@ -8,19 +8,6 @@ open MarkdownLinkChecker.Files
 open MarkdownLinkChecker.Options
 open MarkdownLinkChecker.Timing
 
-module Dictionary =
-    open System.Collections.Generic
-
-    let empty<'TKey, 'TValue when 'TKey: equality> = Dictionary<'TKey, 'TValue>()
-
-    let getOrAdd<'TKey, 'TValue> (dictionary: IDictionary<'TKey, 'TValue>) key fn =
-        match dictionary.TryGetValue(key) with
-        | (true, value) -> value
-        | _ ->
-            let value = fn key
-            dictionary.Add(key, value)
-            value
-
 type LinkStatus =
     | Found
     | NotFound
@@ -35,7 +22,7 @@ type CheckedLink =
 
 type CheckedDocument =
     { File: FilePath
-      CheckedLinks: CheckedLink list
+      CheckedLinks: CheckedLink[]
       Status: Status }
 
 let private httpClient = new HttpClient()
@@ -82,7 +69,7 @@ let private checkLink (options: Options) (link: Link) =
     | UrlLink(url, _) -> checkUrlLink options url
     | FileLink(path, _) -> checkFileLink options path.Absolute
     
-let private checkLinks (options: Options) (documents: Document list) =
+let private checkLinks (options: Options) (documents: Document[]) =
     documents
     |> Seq.collect (fun document -> document.Links)
     |> Seq.distinctBy (linkValue)
@@ -96,10 +83,10 @@ let private toCheckedLinks (checkedLinks: Map<string, LinkStatus>) (document: Do
         { Link = link
           Status = Map.find (linkValue link) checkedLinks }
 
-    List.map toCheckedLink document.Links
+    Array.map toCheckedLink document.Links
 
-let private checkedDocumentStatus (checkedLinks: CheckedLink list) =
-    if checkedLinks |> List.forall (fun checkedLink -> checkedLink.Status = Found)
+let private checkedDocumentStatus (checkedLinks: CheckedLink[]) =
+    if checkedLinks |> Array.forall (fun checkedLink -> checkedLink.Status = Found)
     then Valid
     else Invalid
 
@@ -118,9 +105,11 @@ let private checkDocument (options: Options) (checkedLinks: Map<string, LinkStat
     options.Logger.Normal(sprintf "%c %s" (statusIcon checkedDocument.Status) document.Path.Relative)
     checkedDocument
 
-let checkDocuments (options: Options) (documents: Document list) =
+let checkDocuments (options: Options) (documents: Document[]) =
     let checkedLinks = checkLinks options documents
-    let checkedDocuments = documents |> List.map (checkDocument options checkedLinks)
-    let documentsAreValid = checkedDocuments |> List.forall (fun checkedDocument -> checkedDocument.Status = Valid)
+    let documentsAreValid =
+        documents
+        |> Seq.map (checkDocument options checkedLinks)
+        |> Seq.forall (fun checkedDocument -> checkedDocument.Status = Valid)
 
     if documentsAreValid then Valid else Invalid

@@ -12,8 +12,6 @@ type FilePath =
     { Absolute: string
       Relative: string }
 
-let private isMarkdownFile (path: string) = Path.GetExtension(path) = ".md"
-
 let toFilePath (directory: string) (relativePath: string) =
     let directoryPath = Path.Combine(directory, relativePath)
     let absolutePath = Path.GetFullPath(directoryPath)
@@ -22,6 +20,14 @@ let toFilePath (directory: string) (relativePath: string) =
     { Absolute = absolutePath
       Relative = relativePath }
 
+let private isMarkdownFile (path: string) = Path.GetExtension(path) = ".md"
+
+let private toMarkdownFilePath (directory: string) (relativePath: string) =
+    if isMarkdownFile relativePath then
+        Some (toFilePath directory relativePath)
+    else
+        None
+
 let private filesInDirectory (options: Options) =
     let matcher = Matcher().AddInclude("**/*.md")
     let root = DirectoryInfoWrapper(DirectoryInfo(options.Directory))
@@ -29,20 +35,15 @@ let private filesInDirectory (options: Options) =
 
     matchResults.Files
     |> Seq.map (fun fileMatch -> fileMatch.Path)
-    |> Seq.filter isMarkdownFile
-    |> Seq.map (toFilePath options.Directory)
+    |> Seq.choose (toMarkdownFilePath options.Directory)
 
 let private includedFiles (options: Options) =
-    options.Files
-    |> Seq.filter isMarkdownFile
-    |> Seq.map (toFilePath options.Directory)
+    Seq.choose (toMarkdownFilePath options.Directory) options.Files
 
 let private excludedFiles (options: Options) =
-    options.Exclude
-    |> Seq.filter isMarkdownFile
-    |> Seq.map (toFilePath options.Directory)
+    Seq.choose (toMarkdownFilePath options.Directory) options.Exclude
 
-let private checkAllFilesInDirectory (options: Options) = List.isEmpty options.Files
+let private checkAllFilesInDirectory (options: Options) = Array.isEmpty options.Files
 
 let private filterExcludedFiles (options: Options) files =
     let osSpecificStringComparison =
@@ -54,12 +55,10 @@ let private filterExcludedFiles (options: Options) files =
         excludedFiles options
         |> Seq.exists (fun excludePath -> file.Absolute.StartsWith(excludePath.Absolute, osSpecificStringComparison))
 
-    files |> Seq.filter (isExcludedFile >> not)
+    Seq.filter (isExcludedFile >> not) files
 
-let findFiles (options: Options): FilePath list =
+let findFiles (options: Options): FilePath seq =
     let files =
         if checkAllFilesInDirectory options then filesInDirectory options else includedFiles options
 
-    files
-    |> filterExcludedFiles options
-    |> Seq.toList
+    filterExcludedFiles options files

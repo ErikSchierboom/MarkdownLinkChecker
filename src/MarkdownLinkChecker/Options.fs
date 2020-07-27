@@ -14,8 +14,8 @@ type Mode =
 
 type Options =
     { Directory: string
-      Files: string list
-      Exclude: string list
+      Files: string[]
+      Exclude: string[]
       Logger: Logger
       Mode: Mode }
 
@@ -59,8 +59,8 @@ let private parseMode (mode: string) =
     | _ -> CheckAllLinks
 
 let private fromCommandLineOptions (options: CommandLineOptions) =
-    { Files = options.Files |> List.ofSeq
-      Exclude = options.Exclude |> List.ofSeq
+    { Files = Array.ofSeq options.Files
+      Exclude = Array.ofSeq options.Exclude
       Directory = options.Directory |> Option.defaultWith System.IO.Directory.GetCurrentDirectory
       Logger =
           options.Verbosity
