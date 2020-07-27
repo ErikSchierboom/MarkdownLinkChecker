@@ -1,17 +1,14 @@
 module MarkdownLinkChecker.Timing
 
+open System
 open System.Diagnostics
 
-let time f =
-    let stopwatch = Stopwatch.StartNew()
-    let result = f()
-    stopwatch.Stop()
-    result, stopwatch.Elapsed
+type Timed<'T> = Timed of 'T * TimeSpan
 
-let timeAsync f =
+let time f =
     async {
         let stopwatch = Stopwatch.StartNew()
         let! result = f()
         stopwatch.Stop()
-        return result, stopwatch.Elapsed
+        return Timed(result, stopwatch.Elapsed)
     }

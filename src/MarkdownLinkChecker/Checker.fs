@@ -39,8 +39,8 @@ let private linkValue (link: Link) =
 
 let private checkUrlLink (options: Options) (url: string) =
     async {
-        let! urlLinkStatus, elapsed =
-            timeAsync (fun () ->
+        let! Timed(urlLinkStatus, elapsed) =
+            time (fun () ->
                 async {
                     let! response =
                         httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url))
@@ -55,8 +55,8 @@ let private checkUrlLink (options: Options) (url: string) =
 
 let private checkFileLink (options: Options) (path: string) =
     async {
-        let! fileLinkStatus, elapsed =
-            timeAsync (fun () -> async {
+        let! Timed(fileLinkStatus, elapsed) =
+            time (fun () -> async {
                 return if File.Exists(path) then Found else NotFound
             })
         
