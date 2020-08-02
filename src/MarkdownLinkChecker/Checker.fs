@@ -37,45 +37,50 @@ let private linkValue (link: Link) =
     | UrlLink(url, _) -> url
     | FileLink(path, _) -> path.Absolute
 
-let private checkUrlLink (options: Options) (url: string) =
+let private checkUrlStatus (url: string) =
     async {
-        let! Timed(urlLinkStatus, elapsed) =
-            time (fun () ->
-                async {
-                    let! response =
-                        httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url))
-                        |> Async.AwaitTask
+        let! timed = time (fun () ->
+            async {
+                let! response =
+                    httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url))
+                    |> Async.AwaitTask
 
-                    return if response.IsSuccessStatusCode then Found else NotFound
-                })
-
-        options.Logger.Detailed(sprintf "%c %s %.0fms" (linkStatusIcon urlLinkStatus) url elapsed.TotalMilliseconds)
-        return (url, urlLinkStatus)
-    }
-
-let private checkFileLink (options: Options) (path: string) =
-    async {
-        let! Timed(fileLinkStatus, elapsed) =
-            time (fun () -> async {
-                return if File.Exists(path) then Found else NotFound
+                return if response.IsSuccessStatusCode then Found else NotFound
             })
+
+        return (url, timed)
+    }
+
+let private checkFileStatus (path: string) =
+    async {
+        let! timed = time (fun () -> async {
+            return if File.Exists(path) then Found else NotFound
+        })
         
-        options.Logger.Detailed(sprintf "%c %s %.0fms" (linkStatusIcon fileLinkStatus) path elapsed.TotalMilliseconds)    
-        return (path, fileLinkStatus)
+        return (path, timed)
     }
     
-let private checkLink (options: Options) (link: Link) =
+let private checkLinkStatus (link: Link) =
     match link with
-    | UrlLink(url, _) -> checkUrlLink options url
-    | FileLink(path, _) -> checkFileLink options path.Absolute
+    | UrlLink(url, _) -> checkUrlStatus url
+    | FileLink(path, _) -> checkFileStatus path.Absolute
     
-let private checkLinks (options: Options) (documents: Document[]) =
+let private checkLinkStatuses (documents: Document[]) =
     documents
     |> Seq.collect (fun document -> document.Links)
     |> Seq.distinctBy (linkValue)
-    |> Seq.map (checkLink options)
+    |> Seq.map checkLinkStatus
     |> Async.Parallel
     |> Async.RunSynchronously
+    
+let private linkStatusForDocuments (options: Options) (documents: Document[]) =
+    let linkStatuses = checkLinkStatuses documents
+
+    for (key, (Timed(status, elapsed))) in linkStatuses do
+        options.Logger.Detailed(sprintf "%c %s %.0fms" (linkStatusIcon status) key elapsed.TotalMilliseconds)
+        
+    linkStatuses
+    |> Seq.map (fun (key, (Timed(status, _))) -> (key, status))
     |> Map.ofSeq
 
 let private toCheckedLinks (checkedLinks: Map<string, LinkStatus>) (document: Document) =
@@ -106,7 +111,7 @@ let private checkDocument (options: Options) (checkedLinks: Map<string, LinkStat
     checkedDocument
 
 let checkDocuments (options: Options) (documents: Document[]) =
-    let checkedLinks = checkLinks options documents
+    let checkedLinks = linkStatusForDocuments options documents
     let documentsAreValid =
         documents
         |> Seq.map (checkDocument options checkedLinks)
