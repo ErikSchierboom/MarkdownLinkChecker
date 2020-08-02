@@ -10,7 +10,6 @@ type ExitCode =
     | Error = 1
 
 // TODO: output errors
-// TODO: cleanup empty lines in loggin output
 // TODO: add instructions to README
 // TODO: create computation expression for timing
 
