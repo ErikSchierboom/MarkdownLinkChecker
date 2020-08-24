@@ -12,6 +12,8 @@ type ExitCode =
 // TODO: output errors
 // TODO: add instructions to README
 // TODO: create computation expression for timing
+// TODO: check if status icons work on windows
+// TODO: borrow output from https://glebbahmutov.com/blog/check-markdown-links/
 
 [<EntryPoint>]
 let main argv =

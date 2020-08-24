@@ -77,7 +77,9 @@ let private linkStatusForDocuments (options: Options) (documents: Document[]) =
     let linkStatuses = checkLinkStatuses documents
 
     for (key, (Timed(status, elapsed))) in linkStatuses do
-        options.Logger.Detailed(sprintf "%c %s %.0fms" (linkStatusIcon status) key elapsed.TotalMilliseconds)
+        options.Logger.Detailed(sprintf "%c Checked %s %.0fms" (linkStatusIcon status) key elapsed.TotalMilliseconds)
+        
+    options.Logger.Detailed ""
         
     linkStatuses
     |> Seq.map (fun (key, (Timed(status, _))) -> (key, status))
@@ -108,6 +110,16 @@ let private checkDocument (options: Options) (checkedLinks: Map<string, LinkStat
           Status = checkedDocumentStatus checkedLinks }
 
     options.Logger.Normal(sprintf "%c %s" (statusIcon checkedDocument.Status) document.Path.Relative)
+    
+    if checkedDocument.Status = Status.Invalid then
+        let invalidLinks = checkedDocument.CheckedLinks |> Seq.filter (fun checkedLink -> checkedLink.Status = NotFound)
+        for invalidLink in invalidLinks do
+            match invalidLink.Link with
+            | FileLink(path, location) ->
+                options.Logger.Detailed(sprintf "[error] at line [%i, %i]  link: %s" location.Line location.Column path.Relative)
+            | UrlLink(url, location) ->
+                options.Logger.Detailed(sprintf "[error] at line %i, column %i: invalid file link to %s" location.Line location.Column url)
+    
     checkedDocument
 
 let checkDocuments (options: Options) (documents: Document[]) =
