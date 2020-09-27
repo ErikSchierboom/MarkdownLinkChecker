@@ -32,43 +32,40 @@ let private linkStatusIcon (status: LinkStatus) =
     | Found -> '✅'
     | NotFound -> '❌'
 
-let private linkValue (link: Link) =
+let private linkKey (link: Link) =
     match link with
     | UrlLink(url, _) -> url
     | FileLink(path, _) -> path.Absolute
 
 let private checkUrlStatus (url: string) =
-    async {
-        let! timed = time (fun () ->
-            async {
-                let! response =
-                    httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url))
-                    |> Async.AwaitTask
+    time (fun () ->
+        async {
+            let! response =
+                httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url))
+                |> Async.AwaitTask
 
-                return if response.IsSuccessStatusCode then Found else NotFound
-            })
-
-        return (url, timed)
-    }
+            return if response.IsSuccessStatusCode then Found else NotFound
+        })
 
 let private checkFileStatus (path: string) =
-    async {
-        let! timed = time (fun () -> async {
-            return if File.Exists(path) then Found else NotFound
-        })
-        
-        return (path, timed)
-    }
+    time (fun () -> async {
+        return if File.Exists(path) then Found else NotFound
+    })
     
 let private checkLinkStatus (link: Link) =
-    match link with
-    | UrlLink(url, _) -> checkUrlStatus url
-    | FileLink(path, _) -> checkFileStatus path.Absolute
+    async {
+        let! status =
+            match link with
+            | UrlLink(url, _) -> checkUrlStatus url
+            | FileLink(path, _) -> checkFileStatus path.Absolute
+
+        return (linkKey link, status)
+    }
     
 let private checkLinkStatuses (documents: Document[]) =
     documents
     |> Seq.collect (fun document -> document.Links)
-    |> Seq.distinctBy (linkValue)
+    |> Seq.distinctBy linkKey
     |> Seq.map checkLinkStatus
     |> Async.Parallel
     |> Async.RunSynchronously
@@ -88,7 +85,7 @@ let private linkStatusForDocuments (options: Options) (documents: Document[]) =
 let private toCheckedLinks (checkedLinks: Map<string, LinkStatus>) (document: Document) =
     let toCheckedLink link =
         { Link = link
-          Status = Map.find (linkValue link) checkedLinks }
+          Status = Map.find (linkKey link) checkedLinks }
 
     Array.map toCheckedLink document.Links
 
