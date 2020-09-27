@@ -1,4 +1,4 @@
-module MarkdownLinkChecker.Program
+﻿module MarkdownLinkChecker.Program
 
 open MarkdownLinkChecker.Options
 open MarkdownLinkChecker.Files
@@ -9,8 +9,9 @@ type ExitCode =
     | Ok = 0
     | Error = 1
 
+// TODO: output errors
 // TODO: add instructions to README
-// TODO: check links in parallel
+// TODO: borrow output from https://glebbahmutov.com/blog/check-markdown-links/
 
 [<EntryPoint>]
 let main argv =

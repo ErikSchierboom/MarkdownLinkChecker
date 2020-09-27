@@ -8,19 +8,6 @@ open MarkdownLinkChecker.Files
 open MarkdownLinkChecker.Options
 open MarkdownLinkChecker.Timing
 
-module Dictionary =
-    open System.Collections.Generic
-
-    let empty<'TKey, 'TValue when 'TKey: equality> = Dictionary<'TKey, 'TValue>()
-
-    let getOrAdd<'TKey, 'TValue> (dictionary: IDictionary<'TKey, 'TValue>) key fn =
-        match dictionary.TryGetValue(key) with
-        | (true, value) -> value
-        | _ ->
-            let value = fn key
-            dictionary.Add(key, value)
-            value
-
 type LinkStatus =
     | Found
     | NotFound
@@ -35,60 +22,111 @@ type CheckedLink =
 
 type CheckedDocument =
     { File: FilePath
-      CheckedLinks: CheckedLink list
+      CheckedLinks: CheckedLink[]
       Status: Status }
 
 let private httpClient = new HttpClient()
 
-let private checkUrlLink (url: string) =
-    let response =
-        httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url))
-        |> Async.AwaitTask
-        |> Async.RunSynchronously
+let private linkStatusIcon (status: LinkStatus) =
+    match status with
+    | Found -> '✅'
+    | NotFound -> '❌'
 
-    if response.IsSuccessStatusCode then Found else NotFound
+let private linkKey (link: Link) =
+    match link with
+    | UrlLink(url, _) -> url
+    | FileLink(path, _) -> path.Absolute
 
-let private checkFileLink (path: string) =
-    if File.Exists(path) then Found else NotFound
+let private checkUrlStatus (url: string) =
+    async {
+        let! response =
+            httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url))
+            |> Async.AwaitTask
 
-let private checkLinkStatus =
-    let cache = Dictionary.empty
+        return if response.IsSuccessStatusCode then Found else NotFound
+    }
 
-    fun (link: Link) ->
-        match link with
-        | UrlLink(url, _) -> Dictionary.getOrAdd cache url checkUrlLink
-        | FileLink(path, _) -> Dictionary.getOrAdd cache path.Absolute checkFileLink
+let private checkFileStatus (path: string) =
+    async {
+        return if File.Exists(path) then Found else NotFound
+    }
+    
+let private checkLinkStatus (link: Link) =
+    async {
+        return timed {
+            return async {
+                let! status =
+                    match link with
+                    | UrlLink(url, _) -> checkUrlStatus url
+                    | FileLink(path, _) -> checkFileStatus path.Absolute
 
-let private checkLink link =
-    { Link = link
-      Status = checkLinkStatus link }
+                return (linkKey link, status)
+            } |> Async.RunSynchronously
+        }
+    }
+    
+let private checkLinkStatuses (documents: Document[]) =
+    documents
+    |> Seq.collect (fun document -> document.Links)
+    |> Seq.distinctBy linkKey
+    |> Seq.map checkLinkStatus
+    |> Async.Parallel
+    |> Async.RunSynchronously
+    
+let private linkStatusForDocuments (options: Options) (documents: Document[]) =
+    let linkStatuses = checkLinkStatuses documents
 
-let private checkLinks (document: Document) = document.Links |> List.map checkLink
+    for (Timed((key, status), elapsed)) in linkStatuses do
+        options.Logger.Detailed(sprintf "%c Checked %s %.0fms" (linkStatusIcon status) key elapsed.TotalMilliseconds)
+        
+    options.Logger.Detailed ""
+        
+    linkStatuses
+    |> Seq.map (fun (Timed(linkToStatus, _)) ->linkToStatus)
+    |> Map.ofSeq
 
-let private checkedDocumentStatus (checkedLinks: CheckedLink list) =
-    if checkedLinks |> List.forall (fun checkedLink -> checkedLink.Status = Found)
+let private toCheckedLinks (checkedLinks: Map<string, LinkStatus>) (document: Document) =
+    let toCheckedLink link =
+        { Link = link
+          Status = Map.find (linkKey link) checkedLinks }
+
+    Array.map toCheckedLink document.Links
+
+let private checkedDocumentStatus (checkedLinks: CheckedLink[]) =
+    if checkedLinks |> Array.forall (fun checkedLink -> checkedLink.Status = Found)
     then Valid
     else Invalid
 
-let private checkDocument (options: Options) (document: Document) =
-    let checkedDocument, elapsed =
-        time (fun () ->
-            let checkedLinks = checkLinks document
+let private statusIcon (status: Status) =
+    match status with
+    | Valid -> '✅'
+    | Invalid -> '❌'
 
-            { File = document.Path
-              CheckedLinks = checkedLinks
-              Status = checkedDocumentStatus checkedLinks })
+let private checkDocument (options: Options) (checkedLinks: Map<string, LinkStatus>) (document: Document) =
+    let checkedLinks = toCheckedLinks checkedLinks document
+    let checkedDocument =
+        { File = document.Path
+          CheckedLinks = checkedLinks
+          Status = checkedDocumentStatus checkedLinks }
 
-    let statusIcon =
-        match checkedDocument.Status with
-        | Valid -> '✅'
-        | Invalid -> '❌'
-
-    options.Logger.Log(sprintf "%c %s %.0fms" statusIcon document.Path.Relative elapsed.TotalMilliseconds)
+    options.Logger.Normal(sprintf "%c %s" (statusIcon checkedDocument.Status) document.Path.Relative)
+    
+    if checkedDocument.Status = Status.Invalid then
+        let invalidLinks = checkedDocument.CheckedLinks |> Seq.filter (fun checkedLink -> checkedLink.Status = NotFound)
+        for invalidLink in invalidLinks do
+            match invalidLink.Link with
+            | FileLink(path, location) ->
+                options.Logger.Detailed(sprintf "[error] at line [%i, %i]  link: %s" location.Line location.Column path.Relative)
+            | UrlLink(url, location) ->
+                options.Logger.Detailed(sprintf "[error] at line %i, column %i: invalid file link to %s" location.Line location.Column url)
+    
     checkedDocument
 
-let checkDocuments (options: Options) documents =
-    let checkedDocuments = documents |> List.map (checkDocument options)
-    let documentsAreValid = checkedDocuments |> List.forall (fun checkedDocument -> checkedDocument.Status = Valid)
+let checkDocuments (options: Options) (documents: Document[]) =
+    let checkedLinks = linkStatusForDocuments options documents
+    let documentsAreValid =
+        documents
+        |> Seq.map (checkDocument options checkedLinks)
+        |> Seq.forall (fun checkedDocument -> checkedDocument.Status = Valid)
 
     if documentsAreValid then Valid else Invalid
