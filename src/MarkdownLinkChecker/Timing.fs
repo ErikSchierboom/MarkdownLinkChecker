@@ -5,10 +5,15 @@ open System.Diagnostics
 
 type Timed<'T> = Timed of 'T * TimeSpan
 
-let time f =
-    async {
+type TimedBuilder() =
+    member x.Return(value) = Timed(value, TimeSpan.Zero)
+
+    member x.Delay(func) =
         let stopwatch = Stopwatch.StartNew()
-        let! result = f()
+        let delayedResult = func()
         stopwatch.Stop()
-        return Timed(result, stopwatch.Elapsed)
-    }
+        
+        match delayedResult with
+        | Timed(value, elapsed) -> Timed(value, elapsed + stopwatch.Elapsed)
+    
+let timed = TimedBuilder()

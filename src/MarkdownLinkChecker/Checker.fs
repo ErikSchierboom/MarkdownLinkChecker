@@ -53,14 +53,16 @@ let private checkFileStatus (path: string) =
     
 let private checkLinkStatus (link: Link) =
     async {
-        return! time (fun () -> async {
-            let! status =
-                match link with
-                | UrlLink(url, _) -> checkUrlStatus url
-                | FileLink(path, _) -> checkFileStatus path.Absolute
+        return timed {
+            return async {
+                let! status =
+                    match link with
+                    | UrlLink(url, _) -> checkUrlStatus url
+                    | FileLink(path, _) -> checkFileStatus path.Absolute
 
-            return (linkKey link, status)
-        })
+                return (linkKey link, status)
+            } |> Async.RunSynchronously
+        }
     }
     
 let private checkLinkStatuses (documents: Document[]) =
