@@ -74,13 +74,13 @@ let private checkLinkStatuses (documents: Document[]) =
 let private linkStatusForDocuments (options: Options) (documents: Document[]) =
     let linkStatuses = checkLinkStatuses documents
 
-    for (key, (Timed(status, elapsed))) in linkStatuses do
+    for (Timed((key, status), elapsed)) in linkStatuses do
         options.Logger.Detailed(sprintf "%c Checked %s %.0fms" (linkStatusIcon status) key elapsed.TotalMilliseconds)
         
     options.Logger.Detailed ""
         
     linkStatuses
-    |> Seq.map (fun (key, (Timed(status, _))) -> (key, status))
+    |> Seq.map (fun (Timed(linkToStatus, _)) ->linkToStatus)
     |> Map.ofSeq
 
 let private toCheckedLinks (checkedLinks: Map<string, LinkStatus>) (document: Document) =
