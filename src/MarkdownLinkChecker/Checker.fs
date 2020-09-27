@@ -28,18 +28,13 @@ let private httpClient = new HttpClient()
 
 let private linkKey (link: Link) =
     match link with
-    | UrlLink(url, _) -> url
-    | FileLink(path, _) -> path.Absolute
+    | UrlLink(url) -> url.AbsoluteUri
+    | FileLink(path) -> path.Absolute
     
 let private linkValue (link: Link) =
     match link with
-    | UrlLink(url, _) -> url
-    | FileLink(path, _) -> path.Relative
-    
-let private linkLocation (link: Link) =
-    match link with
-    | UrlLink(_, location) -> location
-    | FileLink(_, location) -> location
+    | UrlLink(url) -> url.AbsoluteUri
+    | FileLink(path) -> path.Relative
 
 let private checkUrlStatus (url: string) =
     async {
@@ -59,8 +54,8 @@ let private checkLinkStatus (link: Link) =
     async {
         let! status =
             match link with
-            | UrlLink(url, _) -> checkUrlStatus url
-            | FileLink(path, _) -> checkFileStatus path.Absolute
+            | UrlLink(_) -> checkUrlStatus (linkKey link)
+            | FileLink(_) -> checkFileStatus (linkKey link)
 
         return (link, status)
     }
@@ -93,19 +88,21 @@ let private checkedDocumentStatus (checkedLinks: CheckedLink[]) =
 let private logCheckedDocument (options: Options) (checkedDocument: CheckedDocument) =    
     options.Logger.Normal(sprintf "\nFILE: %s" (Path.GetFileName(checkedDocument.File.Absolute)))    
     
-    let invalidLinks =
+    let invalidLinksCount =
         checkedDocument.CheckedLinks
         |> Seq.filter (fun checkedLink -> checkedLink.Status = NotFound)
-        |> Seq.toArray
+        |> Seq.length
 
-    if Array.isEmpty invalidLinks then
+    if invalidLinksCount = 0 then
         options.Logger.Normal(sprintf "%d links checked." checkedDocument.CheckedLinks.Length)
     else
-        options.Logger.Normal(sprintf "%d links checked, %d dead links found." checkedDocument.CheckedLinks.Length invalidLinks.Length)
-
-    for invalidLink in invalidLinks do
-        let locationOfLink = linkLocation invalidLink.Link
-        options.Logger.Normal(sprintf "[✖] link not found at (%i, %i): %s" locationOfLink.Line locationOfLink.Column (linkValue invalidLink.Link))
+        options.Logger.Normal(sprintf "%d links checked, %d dead links found." checkedDocument.CheckedLinks.Length invalidLinksCount)
+    
+    for checkedLink in checkedDocument.CheckedLinks do
+        if checkedLink.Status = Found then
+            options.Logger.Detailed(sprintf "✅ %s" (linkValue checkedLink.Link))
+        else
+            options.Logger.Normal(sprintf "❌ %s" (linkValue checkedLink.Link))
 
 let private checkDocument (options: Options) (checkedLinks: Map<string, LinkStatus>) (document: Document) =
     let checkedLinks = toCheckedLinks checkedLinks document

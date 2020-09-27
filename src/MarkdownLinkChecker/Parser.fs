@@ -9,13 +9,9 @@ open Markdig.Syntax.Inlines
 open MarkdownLinkChecker.Files
 open MarkdownLinkChecker.Options
 
-type LinkLocation =
-    { Line: int
-      Column: int }
-
 type Link =
-    | FileLink of path: FilePath * location: LinkLocation
-    | UrlLink of url: string * location: LinkLocation
+    | FileLink of FilePath
+    | UrlLink of Uri
 
 type Document =
     { Path: FilePath
@@ -25,10 +21,6 @@ let private linkReference (inlineLink: LinkInline): string =
     match Option.ofObj inlineLink.Reference with
     | Some reference -> reference.Url
     | None -> inlineLink.Url
-
-let private linkLocation (inlineLink: LinkInline): LinkLocation =
-    { Line = inlineLink.Line
-      Column = inlineLink.Column }
 
 let private (|UrlReference|FileReference|) (reference: string) =
     let isUrlReference =
@@ -41,14 +33,14 @@ let private parseLink (options: Options) documentPath (inlineLink: LinkInline) =
     match linkReference inlineLink with
     | UrlReference url ->
         if options.Mode.CheckUrls then
-            Some (UrlLink(url, linkLocation inlineLink))
+            Some (UrlLink(Uri(url)))
         else
             None
     | FileReference path ->
         if options.Mode.CheckFiles then
             let pathRelativeToDocument =
                 System.IO.Path.Combine(System.IO.Path.GetDirectoryName(documentPath.Absolute), path)
-            Some (FileLink(toFilePath options.Directory pathRelativeToDocument, linkLocation inlineLink))
+            Some (FileLink(toFilePath options.Directory pathRelativeToDocument))
         else
             None
 
