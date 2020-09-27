@@ -6,7 +6,6 @@ open System.IO
 open MarkdownLinkChecker.Parser
 open MarkdownLinkChecker.Files
 open MarkdownLinkChecker.Options
-open MarkdownLinkChecker.Timing
 
 type LinkStatus =
     | Found
@@ -27,15 +26,20 @@ type CheckedDocument =
 
 let private httpClient = new HttpClient()
 
-let private linkStatusIcon (status: LinkStatus) =
-    match status with
-    | Found -> '✅'
-    | NotFound -> '❌'
-
 let private linkKey (link: Link) =
     match link with
     | UrlLink(url, _) -> url
     | FileLink(path, _) -> path.Absolute
+    
+let private linkValue (link: Link) =
+    match link with
+    | UrlLink(url, _) -> url
+    | FileLink(path, _) -> path.Relative
+    
+let private linkLocation (link: Link) =
+    match link with
+    | UrlLink(_, location) -> location
+    | FileLink(_, location) -> location
 
 let private checkUrlStatus (url: string) =
     async {
@@ -53,16 +57,12 @@ let private checkFileStatus (path: string) =
     
 let private checkLinkStatus (link: Link) =
     async {
-        return timed {
-            return async {
-                let! status =
-                    match link with
-                    | UrlLink(url, _) -> checkUrlStatus url
-                    | FileLink(path, _) -> checkFileStatus path.Absolute
+        let! status =
+            match link with
+            | UrlLink(url, _) -> checkUrlStatus url
+            | FileLink(path, _) -> checkFileStatus path.Absolute
 
-                return (linkKey link, status)
-            } |> Async.RunSynchronously
-        }
+        return (link, status)
     }
     
 let private checkLinkStatuses (documents: Document[]) =
@@ -74,15 +74,8 @@ let private checkLinkStatuses (documents: Document[]) =
     |> Async.RunSynchronously
     
 let private linkStatusForDocuments (options: Options) (documents: Document[]) =
-    let linkStatuses = checkLinkStatuses documents
-
-    for (Timed((key, status), elapsed)) in linkStatuses do
-        options.Logger.Detailed(sprintf "%c Checked %s %.0fms" (linkStatusIcon status) key elapsed.TotalMilliseconds)
-        
-    options.Logger.Detailed ""
-        
-    linkStatuses
-    |> Seq.map (fun (Timed(linkToStatus, _)) ->linkToStatus)
+    checkLinkStatuses documents
+    |> Seq.map (fun (link, status) ->(linkKey link, status))
     |> Map.ofSeq
 
 let private toCheckedLinks (checkedLinks: Map<string, LinkStatus>) (document: Document) =
@@ -97,10 +90,22 @@ let private checkedDocumentStatus (checkedLinks: CheckedLink[]) =
     then Valid
     else Invalid
 
-let private statusIcon (status: Status) =
-    match status with
-    | Valid -> '✅'
-    | Invalid -> '❌'
+let private logCheckedDocument (options: Options) (checkedDocument: CheckedDocument) =    
+    options.Logger.Normal(sprintf "\nFILE: %s" (Path.GetFileName(checkedDocument.File.Absolute)))    
+    
+    let invalidLinks =
+        checkedDocument.CheckedLinks
+        |> Seq.filter (fun checkedLink -> checkedLink.Status = NotFound)
+        |> Seq.toArray
+
+    if Array.isEmpty invalidLinks then
+        options.Logger.Normal(sprintf "%d links checked." checkedDocument.CheckedLinks.Length)
+    else
+        options.Logger.Normal(sprintf "%d links checked, %d dead links found." checkedDocument.CheckedLinks.Length invalidLinks.Length)
+
+    for invalidLink in invalidLinks do
+        let locationOfLink = linkLocation invalidLink.Link
+        options.Logger.Normal(sprintf "[✖] link not found at (%i, %i): %s" locationOfLink.Line locationOfLink.Column (linkValue invalidLink.Link))
 
 let private checkDocument (options: Options) (checkedLinks: Map<string, LinkStatus>) (document: Document) =
     let checkedLinks = toCheckedLinks checkedLinks document
@@ -109,24 +114,12 @@ let private checkDocument (options: Options) (checkedLinks: Map<string, LinkStat
           CheckedLinks = checkedLinks
           Status = checkedDocumentStatus checkedLinks }
 
-    options.Logger.Normal(sprintf "%c %s" (statusIcon checkedDocument.Status) document.Path.Relative)
-    
-    if checkedDocument.Status = Status.Invalid then
-        let invalidLinks = checkedDocument.CheckedLinks |> Seq.filter (fun checkedLink -> checkedLink.Status = NotFound)
-        for invalidLink in invalidLinks do
-            match invalidLink.Link with
-            | FileLink(path, location) ->
-                options.Logger.Detailed(sprintf "[error] at line [%i, %i]  link: %s" location.Line location.Column path.Relative)
-            | UrlLink(url, location) ->
-                options.Logger.Detailed(sprintf "[error] at line %i, column %i: invalid file link to %s" location.Line location.Column url)
-    
+    logCheckedDocument options checkedDocument    
     checkedDocument
 
 let checkDocuments (options: Options) (documents: Document[]) =
     let checkedLinks = linkStatusForDocuments options documents
-    let documentsAreValid =
-        documents
-        |> Seq.map (checkDocument options checkedLinks)
-        |> Seq.forall (fun checkedDocument -> checkedDocument.Status = Valid)
+    let checkedDocuments = documents |> Seq.map (checkDocument options checkedLinks) |> Seq.toArray
+    let documentsAreValid = checkedDocuments |> Seq.forall (fun checkedDocument -> checkedDocument.Status = Valid)
 
     if documentsAreValid then Valid else Invalid

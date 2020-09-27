@@ -9,9 +9,7 @@ type ExitCode =
     | Ok = 0
     | Error = 1
 
-// TODO: output errors
 // TODO: add instructions to README
-// TODO: borrow output from https://glebbahmutov.com/blog/check-markdown-links/
 
 [<EntryPoint>]
 let main argv =
