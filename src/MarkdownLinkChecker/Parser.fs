@@ -2,8 +2,6 @@ module MarkdownLinkChecker.Parser
 
 open System
 
-open System.Threading.Channels
-open System.Threading.Tasks
 open Markdig
 open Markdig.Syntax
 open Markdig.Syntax.Inlines
