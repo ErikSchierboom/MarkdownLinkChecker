@@ -38,28 +38,29 @@ let private linkKey (link: Link) =
     | FileLink(path, _) -> path.Absolute
 
 let private checkUrlStatus (url: string) =
-    time (fun () ->
-        async {
-            let! response =
-                httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url))
-                |> Async.AwaitTask
+    async {
+        let! response =
+            httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url))
+            |> Async.AwaitTask
 
-            return if response.IsSuccessStatusCode then Found else NotFound
-        })
+        return if response.IsSuccessStatusCode then Found else NotFound
+    }
 
 let private checkFileStatus (path: string) =
-    time (fun () -> async {
+    async {
         return if File.Exists(path) then Found else NotFound
-    })
+    }
     
 let private checkLinkStatus (link: Link) =
     async {
-        let! status =
-            match link with
-            | UrlLink(url, _) -> checkUrlStatus url
-            | FileLink(path, _) -> checkFileStatus path.Absolute
+        return! time (fun () -> async {
+            let! status =
+                match link with
+                | UrlLink(url, _) -> checkUrlStatus url
+                | FileLink(path, _) -> checkFileStatus path.Absolute
 
-        return (linkKey link, status)
+            return (linkKey link, status)
+        })
     }
     
 let private checkLinkStatuses (documents: Document[]) =
