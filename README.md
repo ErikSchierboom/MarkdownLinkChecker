@@ -1,6 +1,6 @@
 ## dotnet-markdownlinkchecker
 
-[![Nuget](https://img.shields.io/nuget/v/dotnet-markdownlinkchecker.svg)](https://www.nuget.org/packages/dotnet-markdownlinkchecker)
+[![Nuget](https://img.shields.io/nuget/v/dotnet-markdownlinkchecker.svg)](https://www.nuget.org/packages/dotnet-markdownlinkchecker) ![Test](https://github.com/ErikSchierboom/MarkdownLinkChecker/workflows/Test/badge.svg)
 
 `dotnet-markdownlinkchecker` is a tool to check Markdown links. Both file and URL links are checked.
 
