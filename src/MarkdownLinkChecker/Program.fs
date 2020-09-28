@@ -9,8 +9,6 @@ type ExitCode =
     | Ok = 0
     | Error = 1
 
-// TODO: add instructions to README
-
 [<EntryPoint>]
 let main argv =
     match parseOptions argv with

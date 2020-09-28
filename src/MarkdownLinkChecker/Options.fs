@@ -30,12 +30,12 @@ type CommandLineOptions =
       Directory: string option
 
       [<Option('e', "exclude", Required = false,
-               HelpText = "A list of relative Markdown file or directory paths to exclude from formatting.")>]
+               HelpText = "A list of relative Markdown file or directory paths to exclude from checking.")>]
       Exclude: string seq
 
       [<Option('f', "files", Required = false,
                HelpText =
-                   "A list of relative Markdown file or directory paths to include in formatting. All Markdown files are formatted if empty.")>]
+                   "A list of relative Markdown file or directory paths to checking. All Markdown files are checked if empty.")>]
       Files: string seq
       
       [<Option('m', "mode", Required = false,
