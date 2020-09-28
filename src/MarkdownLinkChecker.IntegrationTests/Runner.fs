@@ -8,9 +8,7 @@ open MarkdownLinkChecker.Program
 open Xunit
 open Xunit.Sdk
 
-type CheckResults =
-    { ExitCode: int
-      Output: string }
+type CheckResults = { ExitCode: int; Output: string }
 
 [<AttributeUsage(AttributeTargets.Class ||| AttributeTargets.Method, AllowMultiple = false, Inherited = true)>]
 type ExecuteInDirectory(directory) =
@@ -22,7 +20,8 @@ type ExecuteInDirectory(directory) =
         currentDirectory <- Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
         Directory.SetCurrentDirectory(Path.Combine(currentDirectory, directory))
 
-    override _.After(_) = Directory.SetCurrentDirectory(currentDirectory)
+    override _.After(_) =
+        Directory.SetCurrentDirectory(currentDirectory)
 
 // Required due to some tests temporarily setting the current directory
 [<assembly:CollectionBehavior(CollectionBehavior.CollectionPerAssembly)>]

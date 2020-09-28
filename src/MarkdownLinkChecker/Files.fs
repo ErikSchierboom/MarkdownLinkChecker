@@ -8,14 +8,14 @@ open Microsoft.Extensions.FileSystemGlobbing.Abstractions
 
 open MarkdownLinkChecker.Options
 
-type FilePath =
-    { Absolute: string
-      Relative: string }
+type FilePath = { Absolute: string; Relative: string }
 
 let toFilePath (directory: string) (relativePath: string) =
     let directoryPath = Path.Combine(directory, relativePath)
     let absolutePath = Path.GetFullPath(directoryPath)
-    let relativePath = Path.GetRelativePath(directory, directoryPath)
+
+    let relativePath =
+        Path.GetRelativePath(directory, directoryPath)
 
     { Absolute = absolutePath
       Relative = relativePath }
@@ -23,14 +23,14 @@ let toFilePath (directory: string) (relativePath: string) =
 let private isMarkdownFile (path: string) = Path.GetExtension(path) = ".md"
 
 let private toMarkdownFilePath (directory: string) (relativePath: string) =
-    if isMarkdownFile relativePath then
-        Some (toFilePath directory relativePath)
-    else
-        None
+    if isMarkdownFile relativePath then Some(toFilePath directory relativePath) else None
 
 let private filesInDirectory (options: Options) =
     let matcher = Matcher().AddInclude("**/*.md")
-    let root = DirectoryInfoWrapper(DirectoryInfo(options.Directory))
+
+    let root =
+        DirectoryInfoWrapper(DirectoryInfo(options.Directory))
+
     let matchResults = matcher.Execute(root)
 
     matchResults.Files
