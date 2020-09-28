@@ -1,0 +1,17 @@
+name: Publish to nuget
+on:
+  push:
+    branches:
+      - master
+jobs:
+  publish:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: "3.1.300"
+      - uses: rohith/publish-nuget@v2
+        with:
+          PROJECT_FILE_PATH: src/MarkdownLinkChecker/MarkdownLinkChecker.fsproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
