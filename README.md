@@ -61,7 +61,7 @@ dotnet pack -o artifacts
 # The final line from the build will read something like
 # Successfully created package '.\artifacts\MarkdownLinkChecker.0.1.0.nupkg'.
 # Use the value that is in the form `0.1.0` as the version in the next command.
-dotnet tool install --add-source .\artifacts -g dotnet-format --version <version>
+dotnet tool install --add-source .\artifacts markdownlinkchecker --version <version>
 dotnet markdownlinkchecker
 ```
 
