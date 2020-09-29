@@ -1,26 +1,26 @@
-## dotnet-markdownlinkchecker
+## markdownlinkchecker
 
-[![Nuget](https://img.shields.io/nuget/v/dotnet-markdownlinkchecker.svg)](https://www.nuget.org/packages/dotnet-markdownlinkchecker) ![Test](https://github.com/ErikSchierboom/MarkdownLinkChecker/workflows/Test/badge.svg)
+[![Nuget](https://img.shields.io/nuget/v/markdownlinkchecker.svg)](https://www.nuget.org/packages/markdownlinkchecker) ![Test](https://github.com/ErikSchierboom/MarkdownLinkChecker/workflows/Test/badge.svg)
 
-`dotnet-markdownlinkchecker` is a tool to check Markdown links. Both file and URL links are checked.
+`markdownlinkchecker` is a tool to check Markdown links. Both file and URL links are checked.
 
 ### How To Install
 
-The `dotnet-markdownlinkchecker` nuget package is [published to nuget.org](https://www.nuget.org/packages/dotnet-markdownlinkchecker/).
+The `markdownlinkchecker` nuget package is [published to nuget.org](https://www.nuget.org/packages/markdownlinkchecker/).
 
 You can install the tool using the following command.
 
 ```console
-dotnet tool install -g dotnet-markdownlinkchecker
+dotnet tool install -g markdownlinkchecker
 ```
 
 ### How To Use
 
-By default `dotnet-markdownlinkchecker` will look in the current directory and its subdirectories for Markdown files. You can also exclude specific files using `-e` or check a specific list of files using `-f`. You can control how verbose the output will be by using the `-v` option.
+By default `markdownlinkchecker` will look in the current directory and its subdirectories for Markdown files. You can also exclude specific files using `-e` or check a specific list of files using `-f`. You can control how verbose the output will be by using the `-v` option.
 
 ```sh
 Usage:
-  dotnet-markdownlinkchecker [options]
+  markdownlinkchecker [options]
 
 Options:
   -v, --verbosity <VERBOSITY> Set the verbosity level. Allowed values are q[uiet], n[ormal] (default) and [d]etailed.
@@ -49,7 +49,7 @@ Add `markdownlinkchecker` after `dotnet` and before the command arguments that y
 You can uninstall the tool using the following command.
 
 ```console
-dotnet tool uninstall -g dotnet-markdownlinkchecker
+dotnet tool uninstall -g markdownlinkchecker
 ```
 
 ### How To Build From Source
