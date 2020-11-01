@@ -16,6 +16,8 @@ type Link =
 
 type Document = { Path: FilePath; Links: Link [] }
 
+let private anchorCharacter = "#"
+
 let private linkReference (inlineLink: LinkInline): string =
     match Option.ofObj inlineLink.Reference with
     | Some reference -> reference.Url
@@ -30,7 +32,7 @@ let private (|UrlReference|FileReference|) (reference: string) =
 
 let private parseLink (options: Options) documentPath (inlineLink: LinkInline) =
     let removeAnchor (link: string) =
-        let anchorIndex = link.LastIndexOf("#")
+        let anchorIndex = link.LastIndexOf(anchorCharacter)
         if anchorIndex = -1 then link else link.[..anchorIndex - 1]
     
     match linkReference inlineLink with
@@ -40,7 +42,10 @@ let private parseLink (options: Options) documentPath (inlineLink: LinkInline) =
         else
             None
     | FileReference path ->
-        if options.Mode.CheckFiles then
+        let isSelfLink = Path.GetFileName(removeAnchor path) = ""        
+        if options.Mode.CheckFiles && isSelfLink then
+            Some(FileLink(toFilePath options.Directory documentPath.Absolute))
+        elif options.Mode.CheckFiles then
             let pathRelativeToDocument = Path.Combine(Path.GetDirectoryName(documentPath.Absolute), removeAnchor path)
             Some(FileLink(toFilePath options.Directory pathRelativeToDocument))
         else
