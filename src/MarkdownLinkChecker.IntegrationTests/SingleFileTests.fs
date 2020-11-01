@@ -17,6 +17,13 @@ let ``Valid URL link with anchor`` () =
         runOnSingleFile "Samples/valid-url-link-with-anchor.md"
 
     Assert.Equal(0, results.ExitCode)
+    
+[<Fact>]
+let ``Valid inline URL link`` () =
+    let results =
+        runOnSingleFile "Samples/valid-inline-url-link.md"
+
+    Assert.Equal(0, results.ExitCode)
 
 [<Fact>]
 let ``Invalid URL link`` () =
@@ -43,6 +50,13 @@ let ``Valid file link`` () =
 let ``Valid file link with anchor`` () =
     let results =
         runOnSingleFile "Samples/valid-file-link-with-anchor.md"
+
+    Assert.Equal(0, results.ExitCode)
+
+[<Fact>]
+let ``Valid inline file link`` () =
+    let results =
+        runOnSingleFile "Samples/valid-inline-file-link.md"
 
     Assert.Equal(0, results.ExitCode)
 
