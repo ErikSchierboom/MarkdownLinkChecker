@@ -5,7 +5,7 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <PackAsTool>true</PackAsTool>
         <ToolCommandName>markdownlinkchecker</ToolCommandName>
-        <Version>0.1.0</Version>
+        <Version>0.2.0</Version>
     </PropertyGroup>
 
     <ItemGroup>
