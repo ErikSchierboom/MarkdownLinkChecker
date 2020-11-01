@@ -5,6 +5,7 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <PackAsTool>true</PackAsTool>
         <ToolCommandName>markdownlinkchecker</ToolCommandName>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <Version>0.2.0</Version>
     </PropertyGroup>
 
