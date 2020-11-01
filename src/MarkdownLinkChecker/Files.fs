@@ -11,11 +11,12 @@ open MarkdownLinkChecker.Options
 type FilePath = { Absolute: string; Relative: string }
 
 let toFilePath (directory: string) (relativePath: string) =
-    let directoryPath = Path.Combine(directory, relativePath)
+    let platformSpecificRelativePath = relativePath.Replace('/', Path.DirectorySeparatorChar)
+
+    let directoryPath = Path.Combine(directory, platformSpecificRelativePath)
     let absolutePath = Path.GetFullPath(directoryPath)
 
-    let relativePath =
-        Path.GetRelativePath(directory, directoryPath)
+    let relativePath = Path.GetRelativePath(directory, directoryPath)
 
     { Absolute = absolutePath
       Relative = relativePath }

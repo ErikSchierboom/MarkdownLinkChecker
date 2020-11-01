@@ -1,6 +1,7 @@
 module MarkdownLinkChecker.Parser
 
 open System
+open System.IO
 
 open Markdig
 open Markdig.Syntax
@@ -28,13 +29,19 @@ let private (|UrlReference|FileReference|) (reference: string) =
     if isUrlReference then UrlReference reference else FileReference reference
 
 let private parseLink (options: Options) documentPath (inlineLink: LinkInline) =
+    let removeAnchor (link: string) =
+        let anchorIndex = link.LastIndexOf("#")
+        if anchorIndex = -1 then link else link.[..anchorIndex - 1]
+    
     match linkReference inlineLink with
-    | UrlReference url -> if options.Mode.CheckUrls then Some(UrlLink(Uri(url))) else None
+    | UrlReference url ->
+        if options.Mode.CheckUrls then
+            Some(UrlLink(Uri(removeAnchor url)))
+        else
+            None
     | FileReference path ->
         if options.Mode.CheckFiles then
-            let pathRelativeToDocument =
-                System.IO.Path.Combine(System.IO.Path.GetDirectoryName(documentPath.Absolute), path)
-
+            let pathRelativeToDocument = Path.Combine(Path.GetDirectoryName(documentPath.Absolute), removeAnchor path)
             Some(FileLink(toFilePath options.Directory pathRelativeToDocument))
         else
             None
@@ -42,7 +49,7 @@ let private parseLink (options: Options) documentPath (inlineLink: LinkInline) =
 let private parseLinks (options: Options) file =
     async {
         let markdown =
-            System.IO.File.ReadAllText(file.Absolute)
+            File.ReadAllText(file.Absolute)
 
         return
             Markdown.Parse(markdown).Descendants<LinkInline>()
