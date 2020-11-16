@@ -7,19 +7,19 @@ open MarkdownLinkChecker.IntegrationTests.Runner
 module NoOptionsTests =
 
     [<Fact>]
-    [<ExecuteInDirectory("Samples/OnlyValid")>]
+    [<ExecuteInDirectory("Fixtures/OnlyValid")>]
     let ``Only valid links`` () =
         let results = run [||]
         Assert.Equal(0, results.ExitCode)
 
     [<Fact>]
-    [<ExecuteInDirectory("Samples/OnlyInvalid")>]
+    [<ExecuteInDirectory("Fixtures/OnlyInvalid")>]
     let ``Only invalid links`` () =
         let results = run [||]
         Assert.Equal(1, results.ExitCode)
 
     [<Fact>]
-    [<ExecuteInDirectory("Samples/ValidAndInvalid")>]
+    [<ExecuteInDirectory("Fixtures/ValidAndInvalid")>]
     let ``Valid and invalid links`` () =
         let results = run [||]
         Assert.Equal(1, results.ExitCode)
@@ -30,7 +30,7 @@ module DirectoryOptionTests =
     let ``Only valid links`` () =
         let results =
             run [| "--directory"
-                   "Samples/OnlyValid" |]
+                   "Fixtures/OnlyValid" |]
 
         Assert.Equal(0, results.ExitCode)
 
@@ -38,7 +38,7 @@ module DirectoryOptionTests =
     let ``Only invalid links`` () =
         let results =
             run [| "--directory"
-                   "Samples/OnlyInvalid" |]
+                   "Fixtures/OnlyInvalid" |]
 
         Assert.Equal(1, results.ExitCode)
 
@@ -46,14 +46,14 @@ module DirectoryOptionTests =
     let ``Valid and invalid links`` () =
         let results =
             run [| "--directory"
-                   "Samples/ValidAndInvalid" |]
+                   "Fixtures/ValidAndInvalid" |]
 
         Assert.Equal(1, results.ExitCode)
 
 module ExcludeOptionTests =
 
     [<Fact>]
-    [<ExecuteInDirectory("Samples/ValidAndInvalid")>]
+    [<ExecuteInDirectory("Fixtures/ValidAndInvalid")>]
     let ``Exclude option`` () =
         let results =
             run [| "--exclude"
@@ -65,7 +65,7 @@ module ExcludeOptionTests =
 module FilesOptionTests =
 
     [<Fact>]
-    [<ExecuteInDirectory("Samples/ValidAndInvalid")>]
+    [<ExecuteInDirectory("Fixtures/ValidAndInvalid")>]
     let ``Files option`` () =
         let results =
             run [| "--files"
@@ -77,25 +77,25 @@ module FilesOptionTests =
 module VerbosityOptionTests =
 
     [<Fact>]
-    [<ExecuteInDirectory("Samples/OnlyValid")>]
+    [<ExecuteInDirectory("Fixtures/OnlyValid")>]
     let ``No verbosity specified outputs logging`` () =
         let results = run [||]
         Assert.NotEmpty(results.Output)
 
     [<Fact>]
-    [<ExecuteInDirectory("Samples/OnlyValid")>]
+    [<ExecuteInDirectory("Fixtures/OnlyValid")>]
     let ``Normal verbosity outputs logging`` () =
         let results = run [| "--verbosity"; "normal" |]
         Assert.NotEmpty(results.Output)
 
     [<Fact>]
-    [<ExecuteInDirectory("Samples/OnlyValid")>]
+    [<ExecuteInDirectory("Fixtures/OnlyValid")>]
     let ``Detailed verbosity outputs logging`` () =
         let results = run [| "--verbosity"; "detailed" |]
         Assert.NotEmpty(results.Output)
 
     [<Fact>]
-    [<ExecuteInDirectory("Samples/OnlyValid")>]
+    [<ExecuteInDirectory("Fixtures/OnlyValid")>]
     let ``Quiet verbosity does not output logging`` () =
         let results = run [| "--verbosity"; "quiet" |]
         Assert.Empty(results.Output)
@@ -105,19 +105,19 @@ module ModeOptionTests =
     module CheckAllLinksTests =
 
         [<Fact>]
-        [<ExecuteInDirectory("Samples/OnlyValid")>]
+        [<ExecuteInDirectory("Fixtures/OnlyValid")>]
         let ``Only valid links`` () =
             let results = run [| "--mode"; "all" |]
             Assert.Equal(0, results.ExitCode)
 
         [<Fact>]
-        [<ExecuteInDirectory("Samples/OnlyInvalid")>]
+        [<ExecuteInDirectory("Fixtures/OnlyInvalid")>]
         let ``Only invalid links`` () =
             let results = run [| "--mode"; "all" |]
             Assert.Equal(1, results.ExitCode)
 
         [<Fact>]
-        [<ExecuteInDirectory("Samples/ValidAndInvalid")>]
+        [<ExecuteInDirectory("Fixtures/ValidAndInvalid")>]
         let ``Valid and invalid links`` () =
             let results = run [| "--mode"; "all" |]
             Assert.Equal(1, results.ExitCode)
@@ -125,13 +125,13 @@ module ModeOptionTests =
     module CheckFileLinksTests =
 
         [<Fact>]
-        [<ExecuteInDirectory("Samples/ValidFilesAndInvalidUrls")>]
+        [<ExecuteInDirectory("Fixtures/ValidFilesAndInvalidUrls")>]
         let ``Valid file links and invalid URLs`` () =
             let results = run [| "--mode"; "files" |]
             Assert.Equal(0, results.ExitCode)
 
         [<Fact>]
-        [<ExecuteInDirectory("Samples/ValidUrlsAndInvalidFiles")>]
+        [<ExecuteInDirectory("Fixtures/ValidUrlsAndInvalidFiles")>]
         let ``Invalid file links and valid URLs`` () =
             let results = run [| "--mode"; "files" |]
             Assert.Equal(1, results.ExitCode)
@@ -139,13 +139,13 @@ module ModeOptionTests =
     module CheckUrlLinksTests =
 
         [<Fact>]
-        [<ExecuteInDirectory("Samples/ValidUrlsAndInvalidFiles")>]
+        [<ExecuteInDirectory("Fixtures/ValidUrlsAndInvalidFiles")>]
         let ``Valid URLs and invalid file links`` () =
             let results = run [| "--mode"; "urls" |]
             Assert.Equal(0, results.ExitCode)
 
         [<Fact>]
-        [<ExecuteInDirectory("Samples/ValidFilesAndInvalidUrls")>]
+        [<ExecuteInDirectory("Fixtures/ValidFilesAndInvalidUrls")>]
         let ``Invalid URLs and valid file links`` () =
             let results = run [| "--mode"; "urls" |]
             Assert.Equal(1, results.ExitCode)

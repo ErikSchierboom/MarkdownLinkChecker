@@ -7,90 +7,90 @@ open MarkdownLinkChecker.IntegrationTests.Runner
 [<Fact>]
 let ``Valid URL link`` () =
     let results =
-        runOnSingleFile "Samples/valid-url-link.md"
+        runOnSingleFile "Fixtures/valid-url-link.md"
 
     Assert.Equal(0, results.ExitCode)
 
 [<Fact>]
 let ``Valid URL link with anchor`` () =
     let results =
-        runOnSingleFile "Samples/valid-url-link-with-anchor.md"
+        runOnSingleFile "Fixtures/valid-url-link-with-anchor.md"
 
     Assert.Equal(0, results.ExitCode)
     
 [<Fact>]
 let ``Valid inline URL link`` () =
     let results =
-        runOnSingleFile "Samples/valid-inline-url-link.md"
+        runOnSingleFile "Fixtures/valid-inline-url-link.md"
 
     Assert.Equal(0, results.ExitCode)
 
 [<Fact>]
 let ``Invalid URL link`` () =
     let results =
-        runOnSingleFile "Samples/invalid-url-link.md"
+        runOnSingleFile "Fixtures/invalid-url-link.md"
 
     Assert.Equal(1, results.ExitCode)
 
 [<Fact>]
 let ``Valid and invalid URL links`` () =
     let results =
-        runOnSingleFile "Samples/valid-and-invalid-url-links.md"
+        runOnSingleFile "Fixtures/valid-and-invalid-url-links.md"
 
     Assert.Equal(1, results.ExitCode)
 
 [<Fact>]
 let ``Valid file link`` () =
     let results =
-        runOnSingleFile "Samples/valid-file-link.md"
+        runOnSingleFile "Fixtures/valid-file-link.md"
 
     Assert.Equal(0, results.ExitCode)
 
 [<Fact>]
 let ``Valid file link with anchor`` () =
     let results =
-        runOnSingleFile "Samples/valid-file-link-with-anchor.md"
+        runOnSingleFile "Fixtures/valid-file-link-with-anchor.md"
 
     Assert.Equal(0, results.ExitCode)
 
 [<Fact>]
 let ``Valid inline file link`` () =
     let results =
-        runOnSingleFile "Samples/valid-inline-file-link.md"
+        runOnSingleFile "Fixtures/valid-inline-file-link.md"
 
     Assert.Equal(0, results.ExitCode)
 
 [<Fact>]
 let ``Invalid file link`` () =
     let results =
-        runOnSingleFile "Samples/invalid-file-link.md"
+        runOnSingleFile "Fixtures/invalid-file-link.md"
 
     Assert.Equal(1, results.ExitCode)
 
 [<Fact>]
 let ``Valid and invalid file links`` () =
     let results =
-        runOnSingleFile "Samples/valid-and-invalid-file-links.md"
+        runOnSingleFile "Fixtures/valid-and-invalid-file-links.md"
 
     Assert.Equal(1, results.ExitCode)
 
 [<Fact>]
 let ``Valid file and url links`` () =
     let results =
-        runOnSingleFile "Samples/valid-file-and-url-links.md"
+        runOnSingleFile "Fixtures/valid-file-and-url-links.md"
 
     Assert.Equal(0, results.ExitCode)
 
 [<Fact>]
 let ``Multiple valid links to same file`` () =
     let results =
-        runOnSingleFile "Samples/multiple-valid-links-to-same-file.md"
+        runOnSingleFile "Fixtures/multiple-valid-links-to-same-file.md"
 
     Assert.Equal(0, results.ExitCode)
 
 [<Fact>]
 let ``Multiple valid links using different formats`` () =
     let results =
-        runOnSingleFile "Samples/multiple-valid-links-using-different-formats.md"
+        runOnSingleFile "Fixtures/multiple-valid-links-using-different-formats.md"
 
     Assert.Equal(0, results.ExitCode)
