@@ -37,13 +37,13 @@ type CommandLineOptions =
       [<Option('e',
                "exclude",
                Required = false,
-               HelpText = "A list of relative Markdown file or directory paths to exclude from checking.")>]
+               HelpText = "A list of relative Markdown file paths to exclude from checking.")>]
       Exclude: string seq
 
       [<Option('f',
                "files",
                Required = false,
-               HelpText = "A list of relative Markdown file or directory paths to checking. All Markdown files are checked if empty.")>]
+               HelpText = "A list of relative Markdown file paths to checking. All Markdown files are checked if empty.")>]
       Files: string seq
 
       [<Option('m',
@@ -94,4 +94,4 @@ let (|ParseSuccess|ParseFailure|) (result: ParserResult<CommandLineOptions>) =
     | _ -> ParseFailure
 
 let parseOptions argv =
-    CommandLine.Parser.Default.ParseArguments<CommandLineOptions>(argv)
+    Parser.Default.ParseArguments<CommandLineOptions>(argv)

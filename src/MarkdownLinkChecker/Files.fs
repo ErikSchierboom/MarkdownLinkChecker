@@ -51,7 +51,7 @@ let private filterExcludedFiles (options: Options) files =
         if RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
         then StringComparison.OrdinalIgnoreCase
         else StringComparison.Ordinal
-
+    
     let isExcludedFile file =
         excludedFiles options
         |> Seq.exists (fun excludePath -> file.Absolute.StartsWith(excludePath.Absolute, osSpecificStringComparison))

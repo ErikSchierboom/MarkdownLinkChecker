@@ -8,6 +8,7 @@
     <ItemGroup>
         <Compile Include="Runner.fs" />
         <Compile Include="SingleFileTests.fs" />
+        <Compile Include="ConsoleOutputTests.fs" />
         <Compile Include="MultipleFilesTests.fs" />
         <Compile Include="DirectoryTests.fs" />
         <Compile Include="OptionsTests.fs" />
