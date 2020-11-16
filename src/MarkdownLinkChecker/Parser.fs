@@ -10,9 +10,13 @@ open Markdig.Syntax.Inlines
 open MarkdownLinkChecker.Files
 open MarkdownLinkChecker.Options
 
+type Position =
+    { Line: int
+      Column: int }
+
 type Link =
-    | FileLink of Path: FilePath * Text: string
-    | UrlLink of Url: Uri * Text: string
+    | FileLink of Path: FilePath * Reference: string * Position: Position
+    | UrlLink of Url: Uri * Reference: string * Position: Position
 
 type Document = { Path: FilePath; Links: Link [] }
 
@@ -22,12 +26,10 @@ let private linkReference (inlineLink: LinkInline): string =
     match Option.ofObj inlineLink.Reference with
     | Some reference -> reference.Url
     | None -> inlineLink.Url
-    
-let private linkText (markdown: string) (inlineLink: LinkInline): string =
-    if inlineLink.IsShortcut then
-        inlineLink.Label
-    else
-        markdown.[inlineLink.FirstChild.Span.Start..inlineLink.LastChild.Span.End]
+        
+let private linkPosition (inlineLink: LinkInline): Position =
+    { Line = inlineLink.Line
+      Column = inlineLink.Column }
 
 let private (|UrlReference|FileReference|) (reference: string) =
     let isUrlReference =
@@ -44,16 +46,16 @@ let private parseLink (options: Options) (markdown: string) documentPath (inline
     match linkReference inlineLink with
     | UrlReference url ->
         if options.Mode.CheckUrls then
-            Some(UrlLink(Uri(removeAnchor url), linkText markdown inlineLink))
+            Some(UrlLink(Uri(removeAnchor url), url, linkPosition inlineLink))
         else
             None
     | FileReference path ->
         let isSelfLink = Path.GetFileName(removeAnchor path) = ""        
         if options.Mode.CheckFiles && isSelfLink then
-            Some(FileLink(toFilePath options.Directory documentPath.Absolute, linkText markdown inlineLink))
+            Some(FileLink(toFilePath options.Directory documentPath.Absolute, path, linkPosition inlineLink))
         elif options.Mode.CheckFiles then
             let pathRelativeToDocument = Path.Combine(Path.GetDirectoryName(documentPath.Absolute), removeAnchor path)
-            Some(FileLink(toFilePath options.Directory pathRelativeToDocument, linkText markdown inlineLink))
+            Some(FileLink(toFilePath options.Directory pathRelativeToDocument, path, linkPosition inlineLink))
         else
             None
 

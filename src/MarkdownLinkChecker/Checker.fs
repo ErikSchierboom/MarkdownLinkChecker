@@ -26,13 +26,18 @@ let private httpClient = new HttpClient()
 
 let private linkKey (link: Link) =
     match link with
-    | UrlLink (url, _) -> url.AbsoluteUri
-    | FileLink (path, _) -> path.Absolute
-
-let private linkText (link: Link) =
+    | UrlLink (url, _, _) -> url.AbsoluteUri
+    | FileLink (path, _, _) -> path.Absolute
+    
+let private linkReference (link: Link) =
     match link with
-    | UrlLink (_, text) -> text
-    | FileLink (_, text) -> text
+    | UrlLink (_, reference, _) -> reference
+    | FileLink (_, reference, _) -> reference
+    
+let private linkPosition (link: Link) =
+    match link with
+    | UrlLink (_, _, position) -> position
+    | FileLink (_, _, position) -> position
 
 let private checkUrlStatus (url: string) =
     async {
@@ -98,9 +103,12 @@ let private logCheckedDocument (options: Options) (checkedDocument: CheckedDocum
             (sprintf "%d links checked, %d dead links found." checkedDocument.CheckedLinks.Length invalidLinksCount)
 
     for checkedLink in checkedDocument.CheckedLinks do
+        let position = linkPosition checkedLink.Link
+        let reference = linkReference checkedLink.Link
+        
         if checkedLink.Status = Found
-        then options.Logger.Detailed(sprintf "✅ %s" (linkText checkedLink.Link))
-        else options.Logger.Normal(sprintf "❌ %s" (linkText checkedLink.Link))
+        then options.Logger.Detailed(sprintf "✅ (%d,%d): %s" position.Line position.Column reference)
+        else options.Logger.Normal(sprintf "❌ (%d,%d): %s" position.Line position.Column reference)
 
 let private checkDocument (options: Options) (checkedLinks: Map<string, LinkStatus>) (document: Document) =
     let checkedLinks = toCheckedLinks checkedLinks document
