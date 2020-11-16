@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@master
       - uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: "3.1.300"
+          dotnet-version: "5.0.100"
       - uses: rohith/publish-nuget@v2
         with:
           PROJECT_FILE_PATH: src/MarkdownLinkChecker/MarkdownLinkChecker.fsproj
