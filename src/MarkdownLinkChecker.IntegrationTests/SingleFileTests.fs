@@ -82,8 +82,15 @@ let ``Valid file and url links`` () =
     Assert.Equal(0, results.ExitCode)
 
 [<Fact>]
-let ``Multiple valid links to same  file`` () =
+let ``Multiple valid links to same file`` () =
     let results =
         runOnSingleFile "Samples/multiple-valid-links-to-same-file.md"
+
+    Assert.Equal(0, results.ExitCode)
+
+[<Fact>]
+let ``Multiple valid links using different formats`` () =
+    let results =
+        runOnSingleFile "Samples/multiple-valid-links-using-different-formats.md"
 
     Assert.Equal(0, results.ExitCode)

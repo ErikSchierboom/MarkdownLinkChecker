@@ -11,8 +11,8 @@ open MarkdownLinkChecker.Files
 open MarkdownLinkChecker.Options
 
 type Link =
-    | FileLink of FilePath
-    | UrlLink of Uri
+    | FileLink of Path: FilePath * Text: string
+    | UrlLink of Url: Uri * Text: string
 
 type Document = { Path: FilePath; Links: Link [] }
 
@@ -22,6 +22,12 @@ let private linkReference (inlineLink: LinkInline): string =
     match Option.ofObj inlineLink.Reference with
     | Some reference -> reference.Url
     | None -> inlineLink.Url
+    
+let private linkText (markdown: string) (inlineLink: LinkInline): string =
+    if inlineLink.IsShortcut then
+        inlineLink.Label
+    else
+        markdown.[inlineLink.FirstChild.Span.Start..inlineLink.LastChild.Span.End]
 
 let private (|UrlReference|FileReference|) (reference: string) =
     let isUrlReference =
@@ -30,7 +36,7 @@ let private (|UrlReference|FileReference|) (reference: string) =
 
     if isUrlReference then UrlReference reference else FileReference reference
 
-let private parseLink (options: Options) documentPath (inlineLink: LinkInline) =
+let private parseLink (options: Options) (markdown: string) documentPath (inlineLink: LinkInline) =
     let removeAnchor (link: string) =
         let anchorIndex = link.LastIndexOf(anchorCharacter)
         if anchorIndex = -1 then link else link.[..anchorIndex - 1]
@@ -38,16 +44,16 @@ let private parseLink (options: Options) documentPath (inlineLink: LinkInline) =
     match linkReference inlineLink with
     | UrlReference url ->
         if options.Mode.CheckUrls then
-            Some(UrlLink(Uri(removeAnchor url)))
+            Some(UrlLink(Uri(removeAnchor url), linkText markdown inlineLink))
         else
             None
     | FileReference path ->
         let isSelfLink = Path.GetFileName(removeAnchor path) = ""        
         if options.Mode.CheckFiles && isSelfLink then
-            Some(FileLink(toFilePath options.Directory documentPath.Absolute))
+            Some(FileLink(toFilePath options.Directory documentPath.Absolute, linkText markdown inlineLink))
         elif options.Mode.CheckFiles then
             let pathRelativeToDocument = Path.Combine(Path.GetDirectoryName(documentPath.Absolute), removeAnchor path)
-            Some(FileLink(toFilePath options.Directory pathRelativeToDocument))
+            Some(FileLink(toFilePath options.Directory pathRelativeToDocument, linkText markdown inlineLink))
         else
             None
 
@@ -55,10 +61,13 @@ let private parseLinks (options: Options) file =
     async {
         let markdown =
             File.ReadAllText(file.Absolute)
+            
+        let pipeline = MarkdownPipelineBuilder().UsePreciseSourceLocation().Build()
+        let markdownDocument = Markdown.Parse(markdown, pipeline)
 
         return
-            Markdown.Parse(markdown).Descendants<LinkInline>()
-            |> Seq.choose (parseLink options file)
+            markdownDocument.Descendants<LinkInline>()
+            |> Seq.choose (parseLink options markdown file)
             |> Seq.toArray
     }
 

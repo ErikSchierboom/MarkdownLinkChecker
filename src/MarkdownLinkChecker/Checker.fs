@@ -26,13 +26,13 @@ let private httpClient = new HttpClient()
 
 let private linkKey (link: Link) =
     match link with
-    | UrlLink (url) -> url.AbsoluteUri
-    | FileLink (path) -> path.Absolute
+    | UrlLink (url, _) -> url.AbsoluteUri
+    | FileLink (path, _) -> path.Absolute
 
-let private linkValue (link: Link) =
+let private linkText (link: Link) =
     match link with
-    | UrlLink (url) -> url.AbsoluteUri
-    | FileLink (path) -> path.Relative
+    | UrlLink (_, text) -> text
+    | FileLink (_, text) -> text
 
 let private checkUrlStatus (url: string) =
     async {
@@ -99,8 +99,8 @@ let private logCheckedDocument (options: Options) (checkedDocument: CheckedDocum
 
     for checkedLink in checkedDocument.CheckedLinks do
         if checkedLink.Status = Found
-        then options.Logger.Detailed(sprintf "✅ %s" (linkValue checkedLink.Link))
-        else options.Logger.Normal(sprintf "❌ %s" (linkValue checkedLink.Link))
+        then options.Logger.Detailed(sprintf "✅ %s" (linkText checkedLink.Link))
+        else options.Logger.Normal(sprintf "❌ %s" (linkText checkedLink.Link))
 
 let private checkDocument (options: Options) (checkedLinks: Map<string, LinkStatus>) (document: Document) =
     let checkedLinks = toCheckedLinks checkedLinks document
