@@ -40,3 +40,5 @@ let runOnSingleFile file = run [| "--files"; file |]
 let runOnMultipleFiles files = run (Array.append [| "--files" |] files)
 
 let runOnDirectory directory = run [| "--directory"; directory |]
+
+let (</>) path1 path2 = Path.Combine(path1, path2)

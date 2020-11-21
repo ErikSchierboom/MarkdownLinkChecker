@@ -17,7 +17,7 @@ let ``Valid URL link with anchor`` () =
         runOnSingleFile "Fixtures/valid-url-link-with-anchor.md"
 
     Assert.Equal(0, results.ExitCode)
-    
+
 [<Fact>]
 let ``Valid inline URL link`` () =
     let results =

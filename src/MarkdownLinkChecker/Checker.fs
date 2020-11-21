@@ -28,12 +28,12 @@ let private linkKey (link: Link) =
     match link with
     | UrlLink (url, _, _) -> url.AbsoluteUri
     | FileLink (path, _, _) -> path.Absolute
-    
+
 let private linkReference (link: Link) =
     match link with
     | UrlLink (_, reference, _) -> reference
     | FileLink (_, reference, _) -> reference
-    
+
 let private linkPosition (link: Link) =
     match link with
     | UrlLink (_, _, position) -> position
@@ -105,7 +105,7 @@ let private logCheckedDocument (options: Options) (checkedDocument: CheckedDocum
     for checkedLink in checkedDocument.CheckedLinks do
         let position = linkPosition checkedLink.Link
         let reference = linkReference checkedLink.Link
-        
+
         if checkedLink.Status = Found
         then options.Logger.Detailed(sprintf "✅ (%d,%d): %s" position.Line position.Column reference)
         else options.Logger.Normal(sprintf "❌ (%d,%d): %s" position.Line position.Column reference)

@@ -44,6 +44,16 @@ Add `markdownlinkchecker` after `dotnet` and before the command arguments that y
 | dotnet **markdownlinkchecker** -e GENERATED.md              | Ignore the GENERATED.md file.                                              |
 | dotnet **markdownlinkchecker** -m urls                      | Only check URL links.                                                      |
 
+### Ignoring files
+
+Files can be ignored through `.markdownignore` files. The format of this file matches that of the `.gitignore` file:
+
+```
+introduction.md
+Contributing/
+**/Docs/*.md
+```
+
 ### How To Uninstall
 
 You can uninstall the tool using the following command.

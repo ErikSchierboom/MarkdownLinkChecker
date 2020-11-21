@@ -5,18 +5,23 @@ open System.IO
 open System.Runtime.InteropServices
 open Microsoft.Extensions.FileSystemGlobbing
 open Microsoft.Extensions.FileSystemGlobbing.Abstractions
+open MAB.DotIgnore
 
 open MarkdownLinkChecker.Options
 
 type FilePath = { Absolute: string; Relative: string }
 
 let toFilePath (directory: string) (relativePath: string) =
-    let platformSpecificRelativePath = relativePath.Replace('/', Path.DirectorySeparatorChar)
+    let platformSpecificRelativePath =
+        relativePath.Replace('/', Path.DirectorySeparatorChar)
 
-    let directoryPath = Path.Combine(directory, platformSpecificRelativePath)
+    let directoryPath =
+        Path.Combine(directory, platformSpecificRelativePath)
+
     let absolutePath = Path.GetFullPath(directoryPath)
 
-    let relativePath = Path.GetRelativePath(directory, directoryPath)
+    let relativePath =
+        Path.GetRelativePath(directory, directoryPath)
 
     { Absolute = absolutePath
       Relative = relativePath }
@@ -44,14 +49,28 @@ let private includedFiles (options: Options) =
 let private excludedFiles (options: Options) =
     Seq.choose (toMarkdownFilePath options.Directory) options.Exclude
 
+let private ignoreListsInDirectory (options: Options) =
+    Directory.EnumerateFiles(options.Directory, ".markdownignore", SearchOption.AllDirectories)
+    |> Seq.map IgnoreList
+    |> Seq.toArray
+
+let private filterIgnoredFiles (options: Options) (files: FilePath seq) =
+    let ignoreLists = ignoreListsInDirectory options
+
+    let isIgnored file =
+        ignoreLists
+        |> Array.exists (fun ignoreList -> ignoreList.IsIgnored(file.Relative, false))
+
+    Seq.filter (isIgnored >> not) files
+
 let private checkAllFilesInDirectory (options: Options) = Array.isEmpty options.Files
 
-let private filterExcludedFiles (options: Options) files =
+let private filterExcludedFiles (options: Options) (files: FilePath seq) =
     let osSpecificStringComparison =
         if RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
         then StringComparison.OrdinalIgnoreCase
         else StringComparison.Ordinal
-    
+
     let isExcludedFile file =
         excludedFiles options
         |> Seq.exists (fun excludePath -> file.Absolute.StartsWith(excludePath.Absolute, osSpecificStringComparison))
@@ -62,4 +81,4 @@ let findFiles (options: Options): FilePath seq =
     let files =
         if checkAllFilesInDirectory options then filesInDirectory options else includedFiles options
 
-    filterExcludedFiles options files
+    files |> filterExcludedFiles options |> filterIgnoredFiles options

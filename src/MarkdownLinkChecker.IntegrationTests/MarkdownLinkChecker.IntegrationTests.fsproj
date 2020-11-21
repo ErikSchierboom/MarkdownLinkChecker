@@ -8,6 +8,7 @@
     <ItemGroup>
         <Compile Include="Runner.fs" />
         <Compile Include="SingleFileTests.fs" />
+        <Compile Include="IgnoreTests.fs" />
         <Compile Include="ConsoleOutputTests.fs" />
         <Compile Include="MultipleFilesTests.fs" />
         <Compile Include="DirectoryTests.fs" />
@@ -27,6 +28,21 @@
     <ItemGroup>
         <FixtureFiles Include="Fixtures\**" />
         <Compile Remove="@(Fixtures)" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="Fixtures\Ignores\Deeper\license.md" />
+      <Content Include="Fixtures\Ignores\Deeper\about.md" />
+      <Content Include="Fixtures\Ignores\Deeper\EvenDeeper\part-1.md" />
+      <Content Include="Fixtures\Ignores\Deeper\EvenDeeper\introduction.md" />
+      <Content Include="Fixtures\Ignores\Deeper\EvenDeeper\part-2.md" />
+      <Content Include="Fixtures\Ignores\Deeper\EvenDeeper\part-3.md" />
+      <Content Include="Fixtures\Ignores\Deeper\MoreNesting\part-4.md" />
+      <Content Include="Fixtures\Ignores\Deeper\MoreNesting\part-5.md" />
+      <Content Include="Fixtures\Ignores\Deeper\AnotherSub\sub.md" />
+      <Content Include="Fixtures\Ignores\Deeper\AnotherSub\license.md" />
+      <Content Include="Fixtures\Ignores\docs.md" />
+      <Content Include="Fixtures\Ignores\links.md" />
     </ItemGroup>
 
     <Target Name="CopyFixtures" AfterTargets="Build">

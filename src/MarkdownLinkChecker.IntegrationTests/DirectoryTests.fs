@@ -21,5 +21,7 @@ let ``Valid and invalid links`` () =
 
 [<Fact>]
 let ``No Markdown files`` () =
-    let results = runOnDirectory "Fixtures/NoMarkdownFiles"
+    let results =
+        runOnDirectory "Fixtures/NoMarkdownFiles"
+
     Assert.Equal(0, results.ExitCode)

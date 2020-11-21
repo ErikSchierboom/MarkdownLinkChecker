@@ -26,6 +26,7 @@
 
     <ItemGroup>
         <PackageReference Include="CommandLineParser.FSharp" Version="2.8.0" />
+        <PackageReference Include="MAB.DotIgnore" Version="3.0.2" />
         <PackageReference Include="Markdig" Version="0.22.0" />
         <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="5.0.0" />
     </ItemGroup>
