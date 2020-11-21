@@ -89,7 +89,7 @@ let private checkedDocumentStatus (checkedLinks: CheckedLink []) =
         Invalid
 
 let private logCheckedDocument (options: Options) (checkedDocument: CheckedDocument) =
-    options.Logger.Normal(sprintf "\nFILE: %s" (Path.GetFileName(checkedDocument.File.Absolute)))
+    options.Logger.Normal(sprintf "\nFILE: %s" (Path.GetRelativePath(options.Directory, checkedDocument.File.Absolute)))
 
     let invalidLinksCount =
         checkedDocument.CheckedLinks
