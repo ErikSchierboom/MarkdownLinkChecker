@@ -89,17 +89,21 @@ let private checkedDocumentStatus (checkedLinks: CheckedLink []) =
         Invalid
 
 let private logCheckedDocument (options: Options) (checkedDocument: CheckedDocument) =
-    options.Logger.Normal(sprintf "\nFILE: %s" (Path.GetRelativePath(options.Directory, checkedDocument.File.Absolute)))
-
     let invalidLinksCount =
         checkedDocument.CheckedLinks
         |> Seq.filter (fun checkedLink -> checkedLink.Status = NotFound)
         |> Seq.length
 
+    let filePath =
+        Path.GetRelativePath(options.Directory, checkedDocument.File.Absolute)
+
     if invalidLinksCount = 0 then
+        options.Logger.Normal(sprintf "\nFILE: %s" filePath)
         options.Logger.Normal(sprintf "%d links checked." checkedDocument.CheckedLinks.Length)
     else
-        options.Logger.Normal
+        options.Logger.Minimal(sprintf "\nFILE: %s" filePath)
+
+        options.Logger.Minimal
             (sprintf "%d links checked, %d dead links found." checkedDocument.CheckedLinks.Length invalidLinksCount)
 
     for checkedLink in checkedDocument.CheckedLinks do
@@ -108,7 +112,7 @@ let private logCheckedDocument (options: Options) (checkedDocument: CheckedDocum
 
         if checkedLink.Status = Found
         then options.Logger.Detailed(sprintf "✅ (%d,%d): %s" position.Line position.Column reference)
-        else options.Logger.Normal(sprintf "❌ (%d,%d): %s" position.Line position.Column reference)
+        else options.Logger.Minimal(sprintf "❌ (%d,%d): %s" position.Line position.Column reference)
 
 let private checkDocument (options: Options) (checkedLinks: Map<string, LinkStatus>) (document: Document) =
     let checkedLinks = toCheckedLinks checkedLinks document

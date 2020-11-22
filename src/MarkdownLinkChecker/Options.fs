@@ -25,7 +25,7 @@ type CommandLineOptions =
     { [<Option('v',
                "verbosity",
                Required = false,
-               HelpText = "Set the verbosity level. Allowed values are q[uiet], n[ormal] (default) and [d]etailed.")>]
+               HelpText = "Set the verbosity level. Allowed values are q[uiet], m[inimal], n[ormal] (default) and [d]etailed.")>]
       Verbosity: string option
 
       [<Option('d',
@@ -58,6 +58,8 @@ let private parseVerbosity (verbosity: string) =
     | "quiet" -> Quiet
     | "d"
     | "detailed" -> Detailed
+    | "m"
+    | "minimal" -> Minimal
     | _ -> Normal
 
 let private parseMode (mode: string) =

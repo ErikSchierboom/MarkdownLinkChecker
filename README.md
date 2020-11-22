@@ -23,7 +23,7 @@ Usage:
   markdownlinkchecker [options]
 
 Options:
-  -v, --verbosity <VERBOSITY> Set the verbosity level. Allowed values are q[uiet], n[ormal] (default) and [d]etailed.
+  -v, --verbosity <VERBOSITY> Set the verbosity level. Allowed values are q[uiet], m[inimal], n[ormal] (default) and [d]etailed.
   -d, --directory <DIRECTORY> The directory to operate on. Any relative file or directory paths specified in other options will be relative to this directory.
                               If not specified, the working directory is used.
   -e, --exclude <EXCLUDE>     A list of relative Markdown file or directory paths to exclude from checking.

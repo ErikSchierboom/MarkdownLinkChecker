@@ -12,7 +12,7 @@ module NoOptionsTests =
             run [| "--directory"
                    "Fixtures" </> "OnlyValid" |]
 
-        Assert.Equal(0, results.ExitCode)
+        Assert.ExitedWithoutError(results)
 
     [<Fact>]
     let ``Only invalid links`` () =
@@ -20,7 +20,7 @@ module NoOptionsTests =
             run [| "--directory"
                    "Fixtures" </> "OnlyInvalid" |]
 
-        Assert.Equal(1, results.ExitCode)
+        Assert.ExitedWithError(results)
 
     [<Fact>]
     let ``Valid and invalid links`` () =
@@ -28,7 +28,7 @@ module NoOptionsTests =
             run [| "--directory"
                    "Fixtures" </> "ValidAndInvalid" |]
 
-        Assert.Equal(1, results.ExitCode)
+        Assert.ExitedWithError(results)
 
 module DirectoryOptionTests =
 
@@ -38,7 +38,7 @@ module DirectoryOptionTests =
             run [| "--directory"
                    "Fixtures" </> "OnlyValid" |]
 
-        Assert.Equal(0, results.ExitCode)
+        Assert.ExitedWithoutError(results)
 
     [<Fact>]
     let ``Only invalid links`` () =
@@ -46,7 +46,7 @@ module DirectoryOptionTests =
             run [| "--directory"
                    "Fixtures" </> "OnlyInvalid" |]
 
-        Assert.Equal(1, results.ExitCode)
+        Assert.ExitedWithError(results)
 
     [<Fact>]
     let ``Valid and invalid links`` () =
@@ -54,7 +54,7 @@ module DirectoryOptionTests =
             run [| "--directory"
                    "Fixtures" </> "ValidAndInvalid" |]
 
-        Assert.Equal(1, results.ExitCode)
+        Assert.ExitedWithError(results)
 
 module ExcludeOptionTests =
 
@@ -67,7 +67,7 @@ module ExcludeOptionTests =
                    "--directory"
                    "Fixtures" </> "ValidAndInvalid" |]
 
-        Assert.Equal(0, results.ExitCode)
+        Assert.ExitedWithoutError(results)
 
 module FilesOptionTests =
 
@@ -80,47 +80,99 @@ module FilesOptionTests =
                    "--directory"
                    "Fixtures" </> "ValidAndInvalid" |]
 
-        Assert.Equal(1, results.ExitCode)
+        Assert.ExitedWithError(results)
 
 module VerbosityOptionTests =
+    
+    let private validFileNames =
+        [ "valid-file-link.md"
+          "valid-url-link.md" ]
+
+    let private invalidFileNames =
+        [ "invalid-file-link.md"
+          "invalid-url-link.md" ]
+    
+    [<Fact>]
+    let ``No verbosity outputs invalid files`` () =
+        let results = runWithDirectory ("Fixtures" </> "ValidAndInvalid")
+
+        Assert.ContainsFileNames(validFileNames, results)
 
     [<Fact>]
-    let ``No verbosity specified outputs logging`` () =
+    let ``No verbosity outputs valid files`` () =
+        let results = runWithDirectory ("Fixtures" </> "ValidAndInvalid")
+
+        Assert.ContainsFileNames(invalidFileNames, results)
+
+    [<Fact>]
+    let ``Minimal verbosity outputs invalid files`` () =
         let results =
-            run [| "--directory"
-                   "Fixtures" </> "OnlyValid" |]
+            run [| "--verbosity"
+                   "minimal"
+                   "--directory"
+                   "Fixtures" </> "ValidAndInvalid" |]
 
-        Assert.NotEmpty(results.Output)
+        Assert.ContainsFileNames(invalidFileNames, results)
 
     [<Fact>]
-    let ``Normal verbosity outputs logging`` () =
+    let ``Minimal verbosity does not output valid files`` () =
+        let results =
+            run [| "--verbosity"
+                   "minimal"
+                   "--directory"
+                   "Fixtures" </> "ValidAndInvalid" |]
+
+        Assert.DoesNotContainFileNames(validFileNames, results)
+
+    [<Fact>]
+    let ``Normal verbosity outputs invalid files`` () =
         let results =
             run [| "--verbosity"
                    "normal"
                    "--directory"
-                   "Fixtures" </> "OnlyValid" |]
+                   "Fixtures" </> "ValidAndInvalid" |]
 
-        Assert.NotEmpty(results.Output)
+        Assert.ContainsFileNames(invalidFileNames, results)
+        
+    [<Fact>]
+    let ``Normal verbosity outputs valid files`` () =
+        let results =
+            run [| "--verbosity"
+                   "normal"
+                   "--directory"
+                   "Fixtures" </> "ValidAndInvalid" |]
+
+        Assert.ContainsFileNames(validFileNames, results)
 
     [<Fact>]
-    let ``Detailed verbosity outputs logging`` () =
+    let ``Detailed verbosity outputs valid files`` () =
         let results =
             run [| "--verbosity"
                    "detailed"
                    "--directory"
-                   "Fixtures" </> "OnlyValid" |]
+                   "Fixtures" </> "ValidAndInvalid" |]
 
-        Assert.NotEmpty(results.Output)
+        Assert.ContainsFileNames(invalidFileNames, results)
 
     [<Fact>]
-    let ``Quiet verbosity does not output logging`` () =
+    let ``Quiet verbosity does not output invalid files`` () =
         let results =
             run [| "--verbosity"
                    "quiet"
                    "--directory"
-                   "Fixtures" </> "OnlyValid" |]
+                   "Fixtures" </> "ValidAndInvalid" |]
 
-        Assert.Empty(results.Output)
+        Assert.DoesNotContainFileNames(invalidFileNames, results)
+
+    [<Fact>]
+    let ``Quiet verbosity does not output valid files`` () =
+        let results =
+            run [| "--verbosity"
+                   "quiet"
+                   "--directory"
+                   "Fixtures" </> "ValidAndInvalid" |]
+
+        Assert.DoesNotContainFileNames(validFileNames, results)
 
 module ModeOptionTests =
 
@@ -134,7 +186,7 @@ module ModeOptionTests =
                        "--directory"
                        "Fixtures" </> "OnlyValid" |]
 
-            Assert.Equal(0, results.ExitCode)
+            Assert.ExitedWithoutError(results)
 
         [<Fact>]
         let ``Only invalid links`` () =
@@ -144,7 +196,7 @@ module ModeOptionTests =
                        "--directory"
                        "Fixtures" </> "OnlyInvalid" |]
 
-            Assert.Equal(1, results.ExitCode)
+            Assert.ExitedWithError(results)
 
         [<Fact>]
         let ``Valid and invalid links`` () =
@@ -154,7 +206,7 @@ module ModeOptionTests =
                        "--directory"
                        "Fixtures" </> "ValidAndInvalid" |]
 
-            Assert.Equal(1, results.ExitCode)
+            Assert.ExitedWithError(results)
 
     module CheckFileLinksTests =
 
@@ -166,7 +218,7 @@ module ModeOptionTests =
                        "--directory"
                        "Fixtures" </> "ValidFilesAndInvalidUrls" |]
 
-            Assert.Equal(0, results.ExitCode)
+            Assert.ExitedWithoutError(results)
 
         [<Fact>]
         let ``Invalid file links and valid URLs`` () =
@@ -176,7 +228,7 @@ module ModeOptionTests =
                        "--directory"
                        "Fixtures" </> "ValidUrlsAndInvalidFiles" |]
 
-            Assert.Equal(1, results.ExitCode)
+            Assert.ExitedWithError(results)
 
     module CheckUrlLinksTests =
 
@@ -188,7 +240,7 @@ module ModeOptionTests =
                        "--directory"
                        "Fixtures" </> "ValidUrlsAndInvalidFiles" |]
 
-            Assert.Equal(0, results.ExitCode)
+            Assert.ExitedWithoutError(results)
 
         [<Fact>]
         let ``Invalid URLs and valid file links`` () =
@@ -198,4 +250,4 @@ module ModeOptionTests =
                        "--directory"
                        "Fixtures" </> "ValidFilesAndInvalidUrls" |]
 
-            Assert.Equal(1, results.ExitCode)
+            Assert.ExitedWithError(results)
