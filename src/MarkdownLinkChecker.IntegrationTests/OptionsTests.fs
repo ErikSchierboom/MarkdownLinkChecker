@@ -32,26 +32,32 @@ module NoOptionsTests =
 
 module DirectoryOptionTests =
 
-    [<Fact>]
-    let ``Only valid links`` () =
+    [<Theory>]
+    [<InlineData("-d")>]
+    [<InlineData("--directory")>]
+    let ``Only valid links`` (directoryArg) =
         let results =
-            run [| "--directory"
+            run [| directoryArg
                    "Fixtures" </> "OnlyValid" |]
 
         Assert.ExitedWithoutError(results)
 
-    [<Fact>]
-    let ``Only invalid links`` () =
+    [<Theory>]
+    [<InlineData("-d")>]
+    [<InlineData("--directory")>]
+    let ``Only invalid links`` (directoryArg) =
         let results =
-            run [| "--directory"
+            run [| directoryArg
                    "Fixtures" </> "OnlyInvalid" |]
 
         Assert.ExitedWithError(results)
 
-    [<Fact>]
-    let ``Valid and invalid links`` () =
+    [<Theory>]
+    [<InlineData("-d")>]
+    [<InlineData("--directory")>]
+    let ``Valid and invalid links`` (directoryArg) =
         let results =
-            run [| "--directory"
+            run [| directoryArg
                    "Fixtures" </> "ValidAndInvalid" |]
 
         Assert.ExitedWithError(results)
