@@ -9,23 +9,23 @@ let ``Only valid links`` () =
     let results =
         runWithDirectory ("Fixtures" </> "OnlyValid")
 
-    Assert.Equal(0, results.ExitCode)
+    Assert.ExitedWithoutError(results)
 
 [<Fact>]
 let ``Only invalid links`` () =
     let results =
         runWithDirectory ("Fixtures" </> "OnlyInvalid")
 
-    Assert.Equal(1, results.ExitCode)
+    Assert.ExitedWithError(results)
 
 [<Fact>]
 let ``Valid and invalid links`` () =
     let results = runWithDirectory "Fixtures"
-    Assert.Equal(1, results.ExitCode)
+    Assert.ExitedWithError(results)
 
 [<Fact>]
 let ``No Markdown files`` () =
     let results =
         runWithDirectory ("Fixtures" </> "NoMarkdownFiles")
 
-    Assert.Equal(0, results.ExitCode)
+    Assert.ExitedWithoutError(results)

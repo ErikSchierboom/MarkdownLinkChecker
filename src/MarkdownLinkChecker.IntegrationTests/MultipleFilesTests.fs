@@ -10,7 +10,7 @@ let ``Only valid links`` () =
         runWithMultipleFiles [| "Fixtures" </> "valid-file-link.md"
                                 "Fixtures" </> "valid-url-link.md" |]
 
-    Assert.Equal(0, results.ExitCode)
+    Assert.ExitedWithoutError(results)
 
 [<Fact>]
 let ``Only invalid links`` () =
@@ -18,7 +18,7 @@ let ``Only invalid links`` () =
         runWithMultipleFiles [| "Fixtures" </> "invalid-file-link.md"
                                 "Fixtures" </> "invalid-url-link.md" |]
 
-    Assert.Equal(1, results.ExitCode)
+    Assert.ExitedWithError(results)
 
 [<Fact>]
 let ``Valid and invalid links`` () =
@@ -26,4 +26,4 @@ let ``Valid and invalid links`` () =
         runWithMultipleFiles [| "Fixtures" </> "valid-file-link.md"
                                 "Fixtures" </> "invalid-url-link.md" |]
 
-    Assert.Equal(1, results.ExitCode)
+    Assert.ExitedWithError(results)

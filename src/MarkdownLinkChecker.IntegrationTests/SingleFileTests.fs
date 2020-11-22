@@ -9,88 +9,88 @@ let ``Valid URL link`` () =
     let results =
         runWithSingleFile ("Fixtures" </> "valid-url-link.md")
 
-    Assert.Equal(0, results.ExitCode)
+    Assert.ExitedWithoutError(results)
 
 [<Fact>]
 let ``Valid URL link with anchor`` () =
     let results =
         runWithSingleFile ("Fixtures" </> "valid-url-link-with-anchor.md")
 
-    Assert.Equal(0, results.ExitCode)
+    Assert.ExitedWithoutError(results)
 
 [<Fact>]
 let ``Valid inline URL link`` () =
     let results =
         runWithSingleFile ("Fixtures" </> "valid-inline-url-link.md")
 
-    Assert.Equal(0, results.ExitCode)
+    Assert.ExitedWithoutError(results)
 
 [<Fact>]
 let ``Invalid URL link`` () =
     let results =
         runWithSingleFile ("Fixtures" </> "invalid-url-link.md")
 
-    Assert.Equal(1, results.ExitCode)
+    Assert.ExitedWithError(results)
 
 [<Fact>]
 let ``Valid and invalid URL links`` () =
     let results =
         runWithSingleFile ("Fixtures" </> "valid-and-invalid-url-links.md")
 
-    Assert.Equal(1, results.ExitCode)
+    Assert.ExitedWithError(results)
 
 [<Fact>]
 let ``Valid file link`` () =
     let results =
         runWithSingleFile ("Fixtures" </> "valid-file-link.md")
 
-    Assert.Equal(0, results.ExitCode)
+    Assert.ExitedWithoutError(results)
 
 [<Fact>]
 let ``Valid file link with anchor`` () =
     let results =
         runWithSingleFile ("Fixtures" </> "valid-file-link-with-anchor.md")
 
-    Assert.Equal(0, results.ExitCode)
+    Assert.ExitedWithoutError(results)
 
 [<Fact>]
 let ``Valid inline file link`` () =
     let results =
         runWithSingleFile ("Fixtures" </> "valid-inline-file-link.md")
 
-    Assert.Equal(0, results.ExitCode)
+    Assert.ExitedWithoutError(results)
 
 [<Fact>]
 let ``Invalid file link`` () =
     let results =
         runWithSingleFile ("Fixtures" </> "invalid-file-link.md")
 
-    Assert.Equal(1, results.ExitCode)
+    Assert.ExitedWithError(results)
 
 [<Fact>]
 let ``Valid and invalid file links`` () =
     let results =
         runWithSingleFile ("Fixtures" </> "valid-and-invalid-file-links.md")
 
-    Assert.Equal(1, results.ExitCode)
+    Assert.ExitedWithError(results)
 
 [<Fact>]
 let ``Valid file and url links`` () =
     let results =
         runWithSingleFile ("Fixtures" </> "valid-file-and-url-links.md")
 
-    Assert.Equal(0, results.ExitCode)
+    Assert.ExitedWithoutError(results)
 
 [<Fact>]
 let ``Multiple valid links to same file`` () =
     let results =
         runWithSingleFile ("Fixtures" </> "multiple-valid-links-to-same-file.md")
 
-    Assert.Equal(0, results.ExitCode)
+    Assert.ExitedWithoutError(results)
 
 [<Fact>]
 let ``Multiple valid links using different formats`` () =
     let results =
         runWithSingleFile ("Fixtures" </> "multiple-valid-links-using-different-formats.md")
 
-    Assert.Equal(0, results.ExitCode)
+    Assert.ExitedWithoutError(results)

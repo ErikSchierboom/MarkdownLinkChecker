@@ -7,7 +7,8 @@ open MarkdownLinkChecker.IntegrationTests.Runner
 
 [<Fact>]
 let ``Single file not ignored`` () =
-    let unignoredFile = "Fixtures" </> "Ignores" </> "Deeper" </> "about.md"
+    let unignoredFile =
+        "Fixtures" </> "Ignores" </> "Deeper" </> "about.md"
 
     let results = runWithSingleFile unignoredFile
 
@@ -16,7 +17,11 @@ let ``Single file not ignored`` () =
 [<Fact>]
 let ``Single file ignored`` () =
     let ignoredFile =
-        "Fixtures" </> "Ignores" </> "Deeper" </> "EvenDeeper" </> "introduction.md"
+        "Fixtures"
+        </> "Ignores"
+        </> "Deeper"
+        </> "EvenDeeper"
+        </> "introduction.md"
 
     let results = runWithSingleFile ignoredFile
 
@@ -25,8 +30,16 @@ let ``Single file ignored`` () =
 [<Fact>]
 let ``Multiple files all ignored`` () =
     let ignoredFiles =
-        [| "Fixtures" </> "Ignores" </> "Deeper" </> "MoreNesting" </> "part-4.md"
-           "Fixtures" </> "Ignores" </> "Deeper" </> "MoreNesting" </> "part-5.md" |]
+        [| "Fixtures"
+           </> "Ignores"
+           </> "Deeper"
+           </> "MoreNesting"
+           </> "part-4.md"
+           "Fixtures"
+           </> "Ignores"
+           </> "Deeper"
+           </> "MoreNesting"
+           </> "part-5.md" |]
 
     let results = runWithMultipleFiles ignoredFiles
 
@@ -59,7 +72,8 @@ let ``Multiple files none ignored`` () =
 
 [<Fact>]
 let ``Directory excludes ignored`` () =
-    let results = runWithDirectory ("Fixtures" </> "Ignores")
+    let results =
+        runWithDirectory ("Fixtures" </> "Ignores")
 
     let ignoredFiles =
         [| "introduction.md"
@@ -74,7 +88,8 @@ let ``Directory excludes ignored`` () =
 
 [<Fact>]
 let ``Directory does not exclude unignored`` () =
-    let results = runWithDirectory ("Fixtures" </> "Ignores")
+    let results =
+        runWithDirectory ("Fixtures" </> "Ignores")
 
     let unignoredFiles =
         [| "docs.md"

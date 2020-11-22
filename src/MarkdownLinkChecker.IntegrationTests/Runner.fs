@@ -40,3 +40,9 @@ module Assert =
 
     let DoesNotContainFileNames (fileNames, results) =
         Assert.All(fileNames, (fun fileName -> DoesNotContainFileName(fileName, results)))
+        
+    let ExitedWithoutError (results) =
+        Assert.Equal(0, results.ExitCode)
+        
+    let ExitedWithError (results) =
+        Assert.Equal(1, results.ExitCode)
