@@ -71,10 +71,12 @@ module ExcludeOptionTests =
 
 module FilesOptionTests =
 
-    [<Fact>]
-    let ``Files option`` () =
+    [<Theory>]
+    [<InlineData("-f")>]
+    [<InlineData("--files")>]
+    let ``Files option`` (filesArg) =
         let results =
-            run [| "--files"
+            run [| filesArg
                    "valid-url-link.md"
                    "invalid-file-link.md"
                    "--directory"
