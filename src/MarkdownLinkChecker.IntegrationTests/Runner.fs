@@ -3,8 +3,10 @@ module MarkdownLinkChecker.IntegrationTests.Runner
 open System
 open System.IO
 
+open System.Reflection
 open MarkdownLinkChecker.Program
 open Xunit
+open Xunit.Sdk
 
 type CheckResults = { ExitCode: int; Output: string }
 
@@ -28,6 +30,19 @@ let runWithDirectory directory = run [| "--directory"; directory |]
 
 let (</>) path1 path2 = Path.Combine(path1, path2)
 
+[<AttributeUsage(AttributeTargets.Class ||| AttributeTargets.Method, AllowMultiple = false, Inherited = true)>]
+type ExecuteInDirectory(directory) =
+    inherit BeforeAfterTestAttribute()
+
+    let mutable currentDirectory = ""
+
+    override _.Before(_) =
+        currentDirectory <- Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
+        Directory.SetCurrentDirectory(Path.Combine(currentDirectory, directory))
+
+    override _.After(_) =
+        Directory.SetCurrentDirectory(currentDirectory)
+
 module Assert =
     let ContainsFileName (fileName, results) =
         Assert.Contains(sprintf "FILE: %s" fileName, results.Output)
@@ -40,9 +55,7 @@ module Assert =
 
     let DoesNotContainFileNames (fileNames, results) =
         Assert.All(fileNames, (fun fileName -> DoesNotContainFileName(fileName, results)))
-        
-    let ExitedWithoutError (results) =
-        Assert.Equal(0, results.ExitCode)
-        
-    let ExitedWithError (results) =
-        Assert.Equal(1, results.ExitCode)
+
+    let ExitedWithoutError (results) = Assert.Equal(0, results.ExitCode)
+
+    let ExitedWithError (results) = Assert.Equal(1, results.ExitCode)

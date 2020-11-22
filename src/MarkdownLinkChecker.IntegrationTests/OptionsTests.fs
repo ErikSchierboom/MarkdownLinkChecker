@@ -7,26 +7,23 @@ open MarkdownLinkChecker.IntegrationTests.Runner
 module NoOptionsTests =
 
     [<Fact>]
+    [<ExecuteInDirectory("Fixtures/OnlyValid")>]
     let ``Only valid links`` () =
-        let results =
-            run [| "--directory"
-                   "Fixtures" </> "OnlyValid" |]
+        let results = run [||]
 
         Assert.ExitedWithoutError(results)
 
     [<Fact>]
+    [<ExecuteInDirectory("Fixtures/OnlyInvalid")>]
     let ``Only invalid links`` () =
-        let results =
-            run [| "--directory"
-                   "Fixtures" </> "OnlyInvalid" |]
+        let results = run [||]
 
         Assert.ExitedWithError(results)
 
     [<Fact>]
+    [<ExecuteInDirectory("Fixtures/ValidAndInvalid")>]
     let ``Valid and invalid links`` () =
-        let results =
-            run [| "--directory"
-                   "Fixtures" </> "ValidAndInvalid" |]
+        let results = run [||]
 
         Assert.ExitedWithError(results)
 
@@ -93,7 +90,7 @@ module FilesOptionTests =
         Assert.ExitedWithError(results)
 
 module VerbosityOptionTests =
-    
+
     let private validFileNames =
         [ "valid-file-link.md"
           "valid-url-link.md" ]
@@ -101,16 +98,16 @@ module VerbosityOptionTests =
     let private invalidFileNames =
         [ "invalid-file-link.md"
           "invalid-url-link.md" ]
-    
+
     let private runWithoutVerbosity () =
         runWithDirectory ("Fixtures" </> "ValidAndInvalid")
-        
+
     let private runWithVerbosity verbosityArg verbosity =
-            run [| verbosityArg
-                   verbosity
-                   "--directory"
-                   "Fixtures" </> "ValidAndInvalid" |]
-    
+        run [| verbosityArg
+               verbosity
+               "--directory"
+               "Fixtures" </> "ValidAndInvalid" |]
+
     [<Fact>]
     let ``No verbosity outputs invalid files`` () =
         let results = runWithoutVerbosity ()
@@ -152,7 +149,7 @@ module VerbosityOptionTests =
         let results = runWithVerbosity verbosityArg verbosity
 
         Assert.ContainsFileNames(invalidFileNames, results)
-        
+
     [<Theory>]
     [<InlineData("-v", "n")>]
     [<InlineData("-v", "normal")>]
@@ -210,7 +207,7 @@ module ModeOptionTests =
                mode
                "--directory"
                dir |]
-    
+
     module CheckAllLinksTests =
 
         [<Theory>]
@@ -219,7 +216,8 @@ module ModeOptionTests =
         [<InlineData("--mode", "a")>]
         [<InlineData("--mode", "all")>]
         let ``Only valid links`` (modeArg, mode) =
-            let results = runWithMode modeArg mode ("Fixtures" </> "OnlyValid")
+            let results =
+                runWithMode modeArg mode ("Fixtures" </> "OnlyValid")
 
             Assert.ExitedWithoutError(results)
 
@@ -229,7 +227,8 @@ module ModeOptionTests =
         [<InlineData("--mode", "a")>]
         [<InlineData("--mode", "all")>]
         let ``Only invalid links`` (modeArg, mode) =
-            let results = runWithMode modeArg mode ("Fixtures" </> "OnlyInvalid")
+            let results =
+                runWithMode modeArg mode ("Fixtures" </> "OnlyInvalid")
 
             Assert.ExitedWithError(results)
 
@@ -239,7 +238,8 @@ module ModeOptionTests =
         [<InlineData("--mode", "a")>]
         [<InlineData("--mode", "all")>]
         let ``Valid and invalid links`` (modeArg, mode) =
-            let results = runWithMode modeArg mode ("Fixtures" </> "ValidAndInvalid")
+            let results =
+                runWithMode modeArg mode ("Fixtures" </> "ValidAndInvalid")
 
             Assert.ExitedWithError(results)
 
@@ -251,7 +251,8 @@ module ModeOptionTests =
         [<InlineData("--mode", "f")>]
         [<InlineData("--mode", "files")>]
         let ``Valid file links and invalid URLs`` (modeArg, mode) =
-            let results = runWithMode modeArg mode ("Fixtures" </> "ValidFilesAndInvalidUrls")
+            let results =
+                runWithMode modeArg mode ("Fixtures" </> "ValidFilesAndInvalidUrls")
 
             Assert.ExitedWithoutError(results)
 
@@ -261,7 +262,8 @@ module ModeOptionTests =
         [<InlineData("--mode", "f")>]
         [<InlineData("--mode", "files")>]
         let ``Invalid file links and valid URLs`` (modeArg, mode) =
-            let results = runWithMode modeArg mode ("Fixtures" </> "ValidUrlsAndInvalidFiles")
+            let results =
+                runWithMode modeArg mode ("Fixtures" </> "ValidUrlsAndInvalidFiles")
 
             Assert.ExitedWithError(results)
 
@@ -273,7 +275,8 @@ module ModeOptionTests =
         [<InlineData("--mode", "u")>]
         [<InlineData("--mode", "urls")>]
         let ``Valid URLs and invalid file links`` (modeArg, mode) =
-            let results = runWithMode modeArg mode ("Fixtures" </> "ValidUrlsAndInvalidFiles")
+            let results =
+                runWithMode modeArg mode ("Fixtures" </> "ValidUrlsAndInvalidFiles")
 
             Assert.ExitedWithoutError(results)
 
@@ -283,6 +286,7 @@ module ModeOptionTests =
         [<InlineData("--mode", "u")>]
         [<InlineData("--mode", "urls")>]
         let ``Invalid URLs and valid file links`` (modeArg, mode) =
-            let results = runWithMode modeArg mode ("Fixtures" </> "ValidFilesAndInvalidUrls")
+            let results =
+                runWithMode modeArg mode ("Fixtures" </> "ValidFilesAndInvalidUrls")
 
             Assert.ExitedWithError(results)
