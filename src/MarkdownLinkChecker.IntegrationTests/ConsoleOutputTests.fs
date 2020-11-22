@@ -7,15 +7,15 @@ open MarkdownLinkChecker.IntegrationTests.Runner
 [<Fact>]
 let ``Single file included in output`` () =
     let results =
-        runOnSingleFile "Fixtures/valid-url-link.md"
+        runWithSingleFile ("Fixtures" </> "valid-url-link.md")
 
     Assert.Contains("valid-url-link.md", results.Output)
 
 [<Fact>]
 let ``Multiple files included in output`` () =
     let results =
-        runOnMultipleFiles [| "Fixtures/valid-url-link.md"
-                              "Fixtures/valid-file-link.md" |]
+        runWithMultipleFiles [| "Fixtures" </> "valid-url-link.md"
+                                "Fixtures" </> "valid-file-link.md" |]
 
     let filenames =
         [ "valid-url-link.md"
@@ -25,14 +25,14 @@ let ``Multiple files included in output`` () =
 
 [<Fact>]
 let ``Directory files included in output`` () =
-    let results = runOnDirectory "Fixtures/Nesting"
+    let results = runWithDirectory ("Fixtures" </> "Nesting")
 
     let filenames = [ "docs.md"; "links.md" ]
     Assert.All(filenames, (fun expectedFilename -> Assert.Contains(expectedFilename, results.Output)))
 
 [<Fact>]
 let ``Sub-directory files included in output`` () =
-    let results = runOnDirectory "Fixtures/Nesting"
+    let results = runWithDirectory ("Fixtures" </> "Nesting")
 
     let filenames = [ "docs.md"; "links.md"; "license.md" ]
     Assert.All(filenames, (fun expectedFilename -> Assert.Contains(expectedFilename, results.Output)))
@@ -41,7 +41,7 @@ let ``Sub-directory files included in output`` () =
 let ``Excluded files not included in output`` () =
     let results =
         run [| "--directory"
-               "Fixtures/Nesting"
+               "Fixtures" </> "Nesting"
                "--exclude"
                "docs.md" |]
 
@@ -51,7 +51,7 @@ let ``Excluded files not included in output`` () =
 let ``No output when verbosity is quiet`` () =
     let results =
         run [| "--directory"
-               "Fixtures/Nesting"
+               "Fixtures" </> "Nesting"
                "--verbosity"
                "quiet" |]
 

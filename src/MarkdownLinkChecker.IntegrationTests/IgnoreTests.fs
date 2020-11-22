@@ -4,46 +4,45 @@ open Xunit
 
 open MarkdownLinkChecker.IntegrationTests.Runner
 
-let private ignoreDir = "Fixtures" </> "Ignores"
 
 [<Fact>]
 let ``Single file not ignored`` () =
-    let unignoredFile = ignoreDir </> "Deeper" </> "about.md"
+    let unignoredFile = "Fixtures" </> "Ignores" </> "Deeper" </> "about.md"
 
-    let results = runOnSingleFile unignoredFile
+    let results = runWithSingleFile unignoredFile
 
     Assert.Contains(unignoredFile, results.Output)
 
 [<Fact>]
 let ``Single file ignored`` () =
     let ignoredFile =
-        ignoreDir </> "Deeper" </> "EvenDeeper" </> "introduction.md"
+        "Fixtures" </> "Ignores" </> "Deeper" </> "EvenDeeper" </> "introduction.md"
 
-    let results = runOnSingleFile ignoredFile
+    let results = runWithSingleFile ignoredFile
 
     Assert.DoesNotContain(ignoredFile, results.Output)
 
 [<Fact>]
 let ``Multiple files all ignored`` () =
     let ignoredFiles =
-        [| ignoreDir </> "Deeper" </> "MoreNesting" </> "part-4.md"
-           ignoreDir </> "Deeper" </> "MoreNesting" </> "part-5.md" |]
+        [| "Fixtures" </> "Ignores" </> "Deeper" </> "MoreNesting" </> "part-4.md"
+           "Fixtures" </> "Ignores" </> "Deeper" </> "MoreNesting" </> "part-5.md" |]
 
-    let results = runOnMultipleFiles ignoredFiles
+    let results = runWithMultipleFiles ignoredFiles
 
     Assert.All(ignoredFiles, (fun fileToCheck -> Assert.DoesNotContain(fileToCheck, results.Output)))
 
 [<Fact>]
 let ``Multiple files partially ignored`` () =
     let ignoredFile =
-        ignoreDir </> "Deeper" </> "EvenDeeper" </> "part-1.md"
+        "Fixtures" </> "Ignores" </> "Deeper" </> "EvenDeeper" </> "part-1.md"
 
     let unignoredFile =
-        ignoreDir </> "Deeper" </> "EvenDeeper" </> "part-2.md"
+        "Fixtures" </> "Ignores" </> "Deeper" </> "EvenDeeper" </> "part-2.md"
 
     let results =
-        runOnMultipleFiles [| ignoredFile
-                              unignoredFile |]
+        runWithMultipleFiles [| ignoredFile
+                                unignoredFile |]
 
     Assert.DoesNotContain(ignoredFile, results.Output)
     Assert.Contains(unignoredFile, results.Output)
@@ -51,16 +50,16 @@ let ``Multiple files partially ignored`` () =
 [<Fact>]
 let ``Multiple files none ignored`` () =
     let unignoredFiles =
-        [| ignoreDir </> "docs.md"
-           ignoreDir </> "Deeper" </> "AnotherSub" </> "sub.md" |]
+        [| "Fixtures" </> "Ignores" </> "docs.md"
+           "Fixtures" </> "Ignores" </> "Deeper" </> "AnotherSub" </> "sub.md" |]
 
-    let results = runOnMultipleFiles unignoredFiles
+    let results = runWithMultipleFiles unignoredFiles
 
     Assert.All(unignoredFiles, (fun fileToCheck -> Assert.Contains(fileToCheck, results.Output)))
 
 [<Fact>]
 let ``Directory excludes ignored`` () =
-    let results = runOnDirectory ignoreDir
+    let results = runWithDirectory ("Fixtures" </> "Ignores")
 
     let ignoredFiles =
         [| "introduction.md"
@@ -75,7 +74,7 @@ let ``Directory excludes ignored`` () =
 
 [<Fact>]
 let ``Directory does not exclude unignored`` () =
-    let results = runOnDirectory ignoreDir
+    let results = runWithDirectory ("Fixtures" </> "Ignores")
 
     let unignoredFiles =
         [| "docs.md"

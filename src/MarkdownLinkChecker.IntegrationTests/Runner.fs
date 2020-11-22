@@ -2,28 +2,13 @@ module MarkdownLinkChecker.IntegrationTests.Runner
 
 open System
 open System.IO
-open System.Reflection
 
 open MarkdownLinkChecker.Program
 open Xunit
-open Xunit.Sdk
 
 type CheckResults = { ExitCode: int; Output: string }
 
-[<AttributeUsage(AttributeTargets.Class ||| AttributeTargets.Method, AllowMultiple = false, Inherited = true)>]
-type ExecuteInDirectory(directory) =
-    inherit BeforeAfterTestAttribute()
-
-    let mutable currentDirectory = ""
-
-    override _.Before(_) =
-        currentDirectory <- Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
-        Directory.SetCurrentDirectory(Path.Combine(currentDirectory, directory))
-
-    override _.After(_) =
-        Directory.SetCurrentDirectory(currentDirectory)
-
-// Required due to some tests temporarily setting the current directory
+// Required due to redirecting of console output
 [<assembly:CollectionBehavior(CollectionBehavior.CollectionPerAssembly)>]
 do ()
 
@@ -35,10 +20,10 @@ let run argv =
     { ExitCode = main argv
       Output = stringWriter.ToString() }
 
-let runOnSingleFile file = run [| "--files"; file |]
+let runWithSingleFile file = run [| "--files"; file |]
 
-let runOnMultipleFiles files = run (Array.append [| "--files" |] files)
+let runWithMultipleFiles files = run (Array.append [| "--files" |] files)
 
-let runOnDirectory directory = run [| "--directory"; directory |]
+let runWithDirectory directory = run [| "--directory"; directory |]
 
 let (</>) path1 path2 = Path.Combine(path1, path2)
