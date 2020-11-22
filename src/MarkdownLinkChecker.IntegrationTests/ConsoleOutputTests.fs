@@ -6,36 +6,41 @@ open MarkdownLinkChecker.IntegrationTests.Runner
 
 [<Fact>]
 let ``Single file included in output`` () =
-    let results =
-        runWithSingleFile ("Fixtures" </> "valid-url-link.md")
+    let fileName = "Fixtures" </> "valid-url-link.md"
 
-    Assert.Contains("valid-url-link.md", results.Output)
+    let results = runWithSingleFile fileName
+
+    Assert.ContainsFileName(fileName, results)
 
 [<Fact>]
 let ``Multiple files included in output`` () =
-    let results =
-        runWithMultipleFiles [| "Fixtures" </> "valid-url-link.md"
-                                "Fixtures" </> "valid-file-link.md" |]
+    let fileNames =
+        [| "Fixtures" </> "valid-url-link.md"
+           "Fixtures" </> "valid-file-link.md" |]
 
-    let filenames =
-        [ "valid-url-link.md"
-          "valid-file-link.md" ]
+    let results = runWithMultipleFiles fileNames
 
-    Assert.All(filenames, (fun expectedFilename -> Assert.Contains(expectedFilename, results.Output)))
+    Assert.ContainsFileNames(fileNames, results)
 
 [<Fact>]
 let ``Directory files included in output`` () =
-    let results = runWithDirectory ("Fixtures" </> "Nesting")
+    let results =
+        runWithDirectory ("Fixtures" </> "Nesting")
 
-    let filenames = [ "docs.md"; "links.md" ]
-    Assert.All(filenames, (fun expectedFilename -> Assert.Contains(expectedFilename, results.Output)))
+    let fileNames = [ "docs.md"; "links.md" ]
+    Assert.ContainsFileNames(fileNames, results)
 
 [<Fact>]
 let ``Sub-directory files included in output`` () =
-    let results = runWithDirectory ("Fixtures" </> "Nesting")
+    let results =
+        runWithDirectory ("Fixtures" </> "Nesting")
 
-    let filenames = [ "docs.md"; "links.md"; "license.md" ]
-    Assert.All(filenames, (fun expectedFilename -> Assert.Contains(expectedFilename, results.Output)))
+    let fileNames =
+        [ "docs.md"
+          "links.md"
+          "Deeper" </> "license.md" ]
+
+    Assert.ContainsFileNames(fileNames, results)
 
 [<Fact>]
 let ``Excluded files not included in output`` () =
@@ -45,7 +50,7 @@ let ``Excluded files not included in output`` () =
                "--exclude"
                "docs.md" |]
 
-    Assert.DoesNotContain("docs.md", results.Output)
+    Assert.DoesNotContainFileName("docs.md", results)
 
 [<Fact>]
 let ``No output when verbosity is quiet`` () =

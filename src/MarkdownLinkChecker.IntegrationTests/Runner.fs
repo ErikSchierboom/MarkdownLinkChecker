@@ -27,3 +27,16 @@ let runWithMultipleFiles files = run (Array.append [| "--files" |] files)
 let runWithDirectory directory = run [| "--directory"; directory |]
 
 let (</>) path1 path2 = Path.Combine(path1, path2)
+
+module Assert =
+    let ContainsFileName (fileName, results) =
+        Assert.Contains(sprintf "FILE: %s" fileName, results.Output)
+
+    let ContainsFileNames (fileNames, results) =
+        Assert.All(fileNames, (fun fileName -> ContainsFileName(fileName, results)))
+
+    let DoesNotContainFileName (fileName, results) =
+        Assert.DoesNotContain(sprintf "FILE: %s" fileName, results.Output)
+
+    let DoesNotContainFileNames (fileNames, results) =
+        Assert.All(fileNames, (fun fileName -> DoesNotContainFileName(fileName, results)))
