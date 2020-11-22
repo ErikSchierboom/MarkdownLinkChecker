@@ -92,85 +92,104 @@ module VerbosityOptionTests =
         [ "invalid-file-link.md"
           "invalid-url-link.md" ]
     
+    let private runWithoutVerbosity () =
+        runWithDirectory ("Fixtures" </> "ValidAndInvalid")
+        
+    let private runWithVerbosity verbosityArg verbosity =
+            run [| verbosityArg
+                   verbosity
+                   "--directory"
+                   "Fixtures" </> "ValidAndInvalid" |]
+    
     [<Fact>]
     let ``No verbosity outputs invalid files`` () =
-        let results = runWithDirectory ("Fixtures" </> "ValidAndInvalid")
+        let results = runWithoutVerbosity ()
 
         Assert.ContainsFileNames(validFileNames, results)
 
     [<Fact>]
     let ``No verbosity outputs valid files`` () =
-        let results = runWithDirectory ("Fixtures" </> "ValidAndInvalid")
+        let results = runWithoutVerbosity ()
 
         Assert.ContainsFileNames(invalidFileNames, results)
 
-    [<Fact>]
-    let ``Minimal verbosity outputs invalid files`` () =
-        let results =
-            run [| "--verbosity"
-                   "minimal"
-                   "--directory"
-                   "Fixtures" </> "ValidAndInvalid" |]
+    [<Theory>]
+    [<InlineData("-v", "m")>]
+    [<InlineData("-v", "minimal")>]
+    [<InlineData("--verbosity", "m")>]
+    [<InlineData("--verbosity", "minimal")>]
+    let ``Minimal verbosity outputs invalid files`` (verbosityArg, verbosity) =
+        let results = runWithVerbosity verbosityArg verbosity
 
         Assert.ContainsFileNames(invalidFileNames, results)
 
-    [<Fact>]
-    let ``Minimal verbosity does not output valid files`` () =
-        let results =
-            run [| "--verbosity"
-                   "minimal"
-                   "--directory"
-                   "Fixtures" </> "ValidAndInvalid" |]
+    [<Theory>]
+    [<InlineData("-v", "m")>]
+    [<InlineData("-v", "minimal")>]
+    [<InlineData("--verbosity", "m")>]
+    [<InlineData("--verbosity", "minimal")>]
+    let ``Minimal verbosity does not output valid files`` (verbosityArg, verbosity) =
+        let results = runWithVerbosity verbosityArg verbosity
 
         Assert.DoesNotContainFileNames(validFileNames, results)
 
-    [<Fact>]
-    let ``Normal verbosity outputs invalid files`` () =
-        let results =
-            run [| "--verbosity"
-                   "normal"
-                   "--directory"
-                   "Fixtures" </> "ValidAndInvalid" |]
+    [<Theory>]
+    [<InlineData("-v", "n")>]
+    [<InlineData("-v", "normal")>]
+    [<InlineData("--verbosity", "n")>]
+    [<InlineData("--verbosity", "normal")>]
+    let ``Normal verbosity outputs invalid files`` (verbosityArg, verbosity) =
+        let results = runWithVerbosity verbosityArg verbosity
 
         Assert.ContainsFileNames(invalidFileNames, results)
         
-    [<Fact>]
-    let ``Normal verbosity outputs valid files`` () =
-        let results =
-            run [| "--verbosity"
-                   "normal"
-                   "--directory"
-                   "Fixtures" </> "ValidAndInvalid" |]
+    [<Theory>]
+    [<InlineData("-v", "n")>]
+    [<InlineData("-v", "normal")>]
+    [<InlineData("--verbosity", "n")>]
+    [<InlineData("--verbosity", "normal")>]
+    let ``Normal verbosity outputs valid files`` (verbosityArg, verbosity) =
+        let results = runWithVerbosity verbosityArg verbosity
 
         Assert.ContainsFileNames(validFileNames, results)
 
-    [<Fact>]
-    let ``Detailed verbosity outputs valid files`` () =
-        let results =
-            run [| "--verbosity"
-                   "detailed"
-                   "--directory"
-                   "Fixtures" </> "ValidAndInvalid" |]
+    [<Theory>]
+    [<InlineData("-v", "d")>]
+    [<InlineData("-v", "detailed")>]
+    [<InlineData("--verbosity", "d")>]
+    [<InlineData("--verbosity", "detailed")>]
+    let ``Detailed verbosity outputs invalid files`` (verbosityArg, verbosity) =
+        let results = runWithVerbosity verbosityArg verbosity
 
         Assert.ContainsFileNames(invalidFileNames, results)
 
-    [<Fact>]
-    let ``Quiet verbosity does not output invalid files`` () =
-        let results =
-            run [| "--verbosity"
-                   "quiet"
-                   "--directory"
-                   "Fixtures" </> "ValidAndInvalid" |]
+    [<Theory>]
+    [<InlineData("-v", "d")>]
+    [<InlineData("-v", "detailed")>]
+    [<InlineData("--verbosity", "d")>]
+    [<InlineData("--verbosity", "detailed")>]
+    let ``Detailed verbosity outputs valid files`` (verbosityArg, verbosity) =
+        let results = runWithVerbosity verbosityArg verbosity
+
+        Assert.ContainsFileNames(validFileNames, results)
+
+    [<Theory>]
+    [<InlineData("-v", "q")>]
+    [<InlineData("-v", "quiet")>]
+    [<InlineData("--verbosity", "q")>]
+    [<InlineData("--verbosity", "quiet")>]
+    let ``Quiet verbosity does not output invalid files`` (verbosityArg, verbosity) =
+        let results = runWithVerbosity verbosityArg verbosity
 
         Assert.DoesNotContainFileNames(invalidFileNames, results)
 
-    [<Fact>]
-    let ``Quiet verbosity does not output valid files`` () =
-        let results =
-            run [| "--verbosity"
-                   "quiet"
-                   "--directory"
-                   "Fixtures" </> "ValidAndInvalid" |]
+    [<Theory>]
+    [<InlineData("-v", "q")>]
+    [<InlineData("-v", "quiet")>]
+    [<InlineData("--verbosity", "q")>]
+    [<InlineData("--verbosity", "quiet")>]
+    let ``Quiet verbosity does not output valid files`` (verbosityArg, verbosity) =
+        let results = runWithVerbosity verbosityArg verbosity
 
         Assert.DoesNotContainFileNames(validFileNames, results)
 
