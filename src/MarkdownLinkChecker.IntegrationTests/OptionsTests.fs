@@ -58,10 +58,12 @@ module DirectoryOptionTests =
 
 module ExcludeOptionTests =
 
-    [<Fact>]
-    let ``Exclude option`` () =
+    [<Theory>]
+    [<InlineData("-e")>]
+    [<InlineData("--exclude")>]
+    let ``Exclude option`` (excludeArg) =
         let results =
-            run [| "--exclude"
+            run [| excludeArg
                    "invalid-url-link.md"
                    "invalid-file-link.md"
                    "--directory"
