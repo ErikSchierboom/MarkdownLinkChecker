@@ -195,78 +195,84 @@ module VerbosityOptionTests =
 
 module ModeOptionTests =
 
+    let runWithMode modeArg mode dir =
+        run [| modeArg
+               mode
+               "--directory"
+               dir |]
+    
     module CheckAllLinksTests =
 
-        [<Fact>]
-        let ``Only valid links`` () =
-            let results =
-                run [| "--mode"
-                       "all"
-                       "--directory"
-                       "Fixtures" </> "OnlyValid" |]
+        [<Theory>]
+        [<InlineData("-m", "a")>]
+        [<InlineData("-m", "all")>]
+        [<InlineData("--mode", "a")>]
+        [<InlineData("--mode", "all")>]
+        let ``Only valid links`` (modeArg, mode) =
+            let results = runWithMode modeArg mode ("Fixtures" </> "OnlyValid")
 
             Assert.ExitedWithoutError(results)
 
-        [<Fact>]
-        let ``Only invalid links`` () =
-            let results =
-                run [| "--mode"
-                       "all"
-                       "--directory"
-                       "Fixtures" </> "OnlyInvalid" |]
+        [<Theory>]
+        [<InlineData("-m", "a")>]
+        [<InlineData("-m", "all")>]
+        [<InlineData("--mode", "a")>]
+        [<InlineData("--mode", "all")>]
+        let ``Only invalid links`` (modeArg, mode) =
+            let results = runWithMode modeArg mode ("Fixtures" </> "OnlyInvalid")
 
             Assert.ExitedWithError(results)
 
-        [<Fact>]
-        let ``Valid and invalid links`` () =
-            let results =
-                run [| "--mode"
-                       "all"
-                       "--directory"
-                       "Fixtures" </> "ValidAndInvalid" |]
+        [<Theory>]
+        [<InlineData("-m", "a")>]
+        [<InlineData("-m", "all")>]
+        [<InlineData("--mode", "a")>]
+        [<InlineData("--mode", "all")>]
+        let ``Valid and invalid links`` (modeArg, mode) =
+            let results = runWithMode modeArg mode ("Fixtures" </> "ValidAndInvalid")
 
             Assert.ExitedWithError(results)
 
     module CheckFileLinksTests =
 
-        [<Fact>]
-        let ``Valid file links and invalid URLs`` () =
-            let results =
-                run [| "--mode"
-                       "files"
-                       "--directory"
-                       "Fixtures" </> "ValidFilesAndInvalidUrls" |]
+        [<Theory>]
+        [<InlineData("-m", "f")>]
+        [<InlineData("-m", "files")>]
+        [<InlineData("--mode", "f")>]
+        [<InlineData("--mode", "files")>]
+        let ``Valid file links and invalid URLs`` (modeArg, mode) =
+            let results = runWithMode modeArg mode ("Fixtures" </> "ValidFilesAndInvalidUrls")
 
             Assert.ExitedWithoutError(results)
 
-        [<Fact>]
-        let ``Invalid file links and valid URLs`` () =
-            let results =
-                run [| "--mode"
-                       "files"
-                       "--directory"
-                       "Fixtures" </> "ValidUrlsAndInvalidFiles" |]
+        [<Theory>]
+        [<InlineData("-m", "f")>]
+        [<InlineData("-m", "files")>]
+        [<InlineData("--mode", "f")>]
+        [<InlineData("--mode", "files")>]
+        let ``Invalid file links and valid URLs`` (modeArg, mode) =
+            let results = runWithMode modeArg mode ("Fixtures" </> "ValidUrlsAndInvalidFiles")
 
             Assert.ExitedWithError(results)
 
     module CheckUrlLinksTests =
 
-        [<Fact>]
-        let ``Valid URLs and invalid file links`` () =
-            let results =
-                run [| "--mode"
-                       "urls"
-                       "--directory"
-                       "Fixtures" </> "ValidUrlsAndInvalidFiles" |]
+        [<Theory>]
+        [<InlineData("-m", "u")>]
+        [<InlineData("-m", "urls")>]
+        [<InlineData("--mode", "u")>]
+        [<InlineData("--mode", "urls")>]
+        let ``Valid URLs and invalid file links`` (modeArg, mode) =
+            let results = runWithMode modeArg mode ("Fixtures" </> "ValidUrlsAndInvalidFiles")
 
             Assert.ExitedWithoutError(results)
 
-        [<Fact>]
-        let ``Invalid URLs and valid file links`` () =
-            let results =
-                run [| "--mode"
-                       "urls"
-                       "--directory"
-                       "Fixtures" </> "ValidFilesAndInvalidUrls" |]
+        [<Theory>]
+        [<InlineData("-m", "u")>]
+        [<InlineData("-m", "urls")>]
+        [<InlineData("--mode", "u")>]
+        [<InlineData("--mode", "urls")>]
+        let ``Invalid URLs and valid file links`` (modeArg, mode) =
+            let results = runWithMode modeArg mode ("Fixtures" </> "ValidFilesAndInvalidUrls")
 
             Assert.ExitedWithError(results)
