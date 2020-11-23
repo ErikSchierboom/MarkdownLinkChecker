@@ -56,6 +56,16 @@ module Assert =
     let DoesNotContainFileNames (fileNames, results) =
         Assert.All(fileNames, (fun fileName -> DoesNotContainFileName(fileName, results)))
 
+    let ContainsValidLinks (results) = Assert.Contains('✅', results.Output)
+
+    let DoesNotContainValidLinks (results) =
+        Assert.DoesNotContain('✅', results.Output)
+
+    let ContainsInvalidLinks (results) = Assert.Contains('❌', results.Output)
+
+    let DoesNotContainInvalidLinks (results) =
+        Assert.DoesNotContain('❌', results.Output)
+
     let ExitedWithoutError (results) = Assert.Equal(0, results.ExitCode)
 
     let ExitedWithError (results) = Assert.Equal(1, results.ExitCode)
