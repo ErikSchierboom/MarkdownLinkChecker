@@ -49,7 +49,7 @@ let private checkUrlStatus (url: string) =
     }
 
 let private checkFileStatus (path: string) =
-    async { return if File.Exists(path) then Found else NotFound }
+    async { return if File.Exists(path) || Directory.Exists(path) then Found else NotFound }
 
 let private checkLinkStatus (link: Link) =
     async {

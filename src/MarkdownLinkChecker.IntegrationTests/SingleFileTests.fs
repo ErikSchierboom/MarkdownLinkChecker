@@ -61,9 +61,23 @@ let ``Valid inline file link`` () =
     Assert.ExitedWithoutError(results)
 
 [<Fact>]
+let ``Valid directory link`` () =
+    let results =
+        runWithSingleFile ("Fixtures" </> "valid-directory-link.md")
+
+    Assert.ExitedWithoutError(results)
+
+[<Fact>]
 let ``Invalid file link`` () =
     let results =
         runWithSingleFile ("Fixtures" </> "invalid-file-link.md")
+
+    Assert.ExitedWithError(results)
+
+[<Fact>]
+let ``Invalid directory link`` () =
+    let results =
+        runWithSingleFile ("Fixtures" </> "invalid-directory-link.md")
 
     Assert.ExitedWithError(results)
 
