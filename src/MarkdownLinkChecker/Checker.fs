@@ -49,7 +49,12 @@ let private checkUrlStatus (url: string) =
     }
 
 let private checkFileStatus (path: string) =
-    async { return if File.Exists(path) || Directory.Exists(path) then Found else NotFound }
+    async {
+        return
+            if File.Exists(path) || Directory.Exists(path)
+            then Found
+            else NotFound
+    }
 
 let private checkLinkStatus (link: Link) =
     async {
@@ -103,7 +108,7 @@ let private logCheckedDocument (options: Options) (checkedDocument: CheckedDocum
     else
         options.Logger.Minimal(sprintf "\nFILE: %s" filePath)
 
-        options.Logger.Minimal
+        options.Logger.Normal
             (sprintf "%d links checked, %d dead links found." checkedDocument.CheckedLinks.Length invalidLinksCount)
 
     for checkedLink in checkedDocument.CheckedLinks do
