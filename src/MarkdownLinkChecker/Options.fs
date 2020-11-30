@@ -1,5 +1,6 @@
 module MarkdownLinkChecker.Options
 
+open System
 open MarkdownLinkChecker.Logging
 
 open CommandLine
@@ -70,9 +71,14 @@ let private parseMode (mode: string) =
     | "urls" -> CheckUrlLinks
     | _ -> CheckAllLinks
 
+let private parseFiles (files: string seq): string [] =
+    files
+    |> Seq.collect (fun file -> file.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+    |> Seq.toArray
+
 let private fromCommandLineOptions (options: CommandLineOptions) =
-    { Files = Array.ofSeq options.Files
-      Exclude = Array.ofSeq options.Exclude
+    { Files = parseFiles options.Files
+      Exclude = parseFiles options.Exclude
       Directory =
           options.Directory
           |> Option.defaultWith System.IO.Directory.GetCurrentDirectory
