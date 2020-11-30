@@ -10,6 +10,7 @@ open MarkdownLinkChecker.Options
 type LinkStatus =
     | Found
     | NotFound
+    | Error
 
 type Status =
     | Valid
@@ -58,12 +59,14 @@ let private checkFileStatus (path: string) =
 
 let private checkLinkStatus (link: Link) =
     async {
-        let! status =
+        let! result =
             match link with
-            | UrlLink (_) -> checkUrlStatus (linkKey link)
-            | FileLink (_) -> checkFileStatus (linkKey link)
-
-        return (link, status)
+            | UrlLink (_) -> checkUrlStatus (linkKey link) |> Async.Catch
+            | FileLink (_) -> checkFileStatus (linkKey link) |> Async.Catch
+   
+        match result with
+        | Choice1Of2 status -> return (link, status)
+        | Choice2Of2 _ -> return (link, Error)
     }
 
 let private checkLinkStatuses (documents: Document []) =
@@ -96,7 +99,7 @@ let private checkedDocumentStatus (checkedLinks: CheckedLink []) =
 let private logCheckedDocument (options: Options) (checkedDocument: CheckedDocument) =
     let invalidLinksCount =
         checkedDocument.CheckedLinks
-        |> Seq.filter (fun checkedLink -> checkedLink.Status = NotFound)
+        |> Seq.filter (fun checkedLink -> checkedLink.Status <> Found)
         |> Seq.length
 
     let filePath =
@@ -115,9 +118,13 @@ let private logCheckedDocument (options: Options) (checkedDocument: CheckedDocum
         let position = linkPosition checkedLink.Link
         let reference = linkReference checkedLink.Link
 
-        if checkedLink.Status = Found
-        then options.Logger.Detailed(sprintf "✅ (%d,%d): %s" position.Line position.Column reference)
-        else options.Logger.Minimal(sprintf "❌ (%d,%d): %s" position.Line position.Column reference)
+        match checkedLink.Status with
+        | Found ->
+            options.Logger.Detailed(sprintf "✅ (%d,%d): %s" position.Line position.Column reference)
+        | NotFound ->
+            options.Logger.Minimal(sprintf "❌ (%d,%d): %s" position.Line position.Column reference)
+        | Error ->
+            options.Logger.Minimal(sprintf "❌ (%d,%d): %s (error)" position.Line position.Column reference)
 
 let private checkDocument (options: Options) (checkedLinks: Map<string, LinkStatus>) (document: Document) =
     let checkedLinks = toCheckedLinks checkedLinks document
