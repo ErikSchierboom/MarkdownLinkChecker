@@ -63,11 +63,23 @@ module ExcludeOptionTests =
     [<Theory>]
     [<InlineData("-e")>]
     [<InlineData("--exclude")>]
-    let ``Exclude option`` (excludeArg) =
+    let ``Excludes passed using space as separator`` (excludeArg) =
         let results =
             run [| excludeArg
                    "invalid-url-link.md"
                    "invalid-file-link.md"
+                   "--directory"
+                   "Fixtures" </> "ValidAndInvalid" |]
+
+        Assert.ExitedWithoutError(results)
+
+    [<Theory>]
+    [<InlineData("-e")>]
+    [<InlineData("--exclude")>]
+    let ``Excludes passed using newline as separator`` (excludeArg) =
+        let results =
+            run [| excludeArg
+                   "invalid-url-link.md\ninvalid-file-link.md"
                    "--directory"
                    "Fixtures" </> "ValidAndInvalid" |]
 
@@ -78,7 +90,7 @@ module FilesOptionTests =
     [<Theory>]
     [<InlineData("-f")>]
     [<InlineData("--files")>]
-    let ``Files option`` (filesArg) =
+    let ``Files passed using space as separator`` (filesArg) =
         let results =
             run [| filesArg
                    "valid-url-link.md"
@@ -87,6 +99,18 @@ module FilesOptionTests =
                    "Fixtures" </> "ValidAndInvalid" |]
 
         Assert.ExitedWithError(results)
+
+    [<Theory>]
+    [<InlineData("-f")>]
+    [<InlineData("--files")>]
+    let ``Files passed using newline as separator`` (filesArg) =
+        let results =
+            run [| filesArg
+                   "valid-url-link.md\nvalid-file-link.md"
+                   "--directory"
+                   "Fixtures" </> "ValidAndInvalid" |]
+
+        Assert.ExitedWithoutError(results)
 
 module VerbosityOptionTests =
 

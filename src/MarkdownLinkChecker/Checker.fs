@@ -63,7 +63,7 @@ let private checkLinkStatus (link: Link) =
             match link with
             | UrlLink (_) -> checkUrlStatus (linkKey link) |> Async.Catch
             | FileLink (_) -> checkFileStatus (linkKey link) |> Async.Catch
-   
+
         match result with
         | Choice1Of2 status -> return (link, status)
         | Choice2Of2 _ -> return (link, Error)
@@ -119,12 +119,9 @@ let private logCheckedDocument (options: Options) (checkedDocument: CheckedDocum
         let reference = linkReference checkedLink.Link
 
         match checkedLink.Status with
-        | Found ->
-            options.Logger.Detailed(sprintf "✅ (%d,%d): %s" position.Line position.Column reference)
-        | NotFound ->
-            options.Logger.Minimal(sprintf "❌ (%d,%d): %s" position.Line position.Column reference)
-        | Error ->
-            options.Logger.Minimal(sprintf "❌ (%d,%d): %s (error)" position.Line position.Column reference)
+        | Found -> options.Logger.Detailed(sprintf "✅ (%d,%d): %s" position.Line position.Column reference)
+        | NotFound -> options.Logger.Minimal(sprintf "❌ (%d,%d): %s" position.Line position.Column reference)
+        | Error -> options.Logger.Minimal(sprintf "❌ (%d,%d): %s (error)" position.Line position.Column reference)
 
 let private checkDocument (options: Options) (checkedLinks: Map<string, LinkStatus>) (document: Document) =
     let checkedLinks = toCheckedLinks checkedLinks document
