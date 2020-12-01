@@ -31,8 +31,8 @@ let private linkPosition (inlineLink: LinkInline): Position =
 
 let private (|UrlReference|FileReference|) (reference: string) =
     let isUrlReference =
-        reference.StartsWith("http:", StringComparison.OrdinalIgnoreCase)
-        || reference.StartsWith("https:", StringComparison.OrdinalIgnoreCase)
+        reference.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+        || reference.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
 
     if isUrlReference then UrlReference reference else FileReference reference
 
