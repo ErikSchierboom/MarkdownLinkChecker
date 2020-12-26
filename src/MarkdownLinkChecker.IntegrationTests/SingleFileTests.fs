@@ -108,3 +108,10 @@ let ``Multiple valid links using different formats`` () =
         runWithSingleFile ("Fixtures" </> "multiple-valid-links-using-different-formats.md")
 
     Assert.ExitedWithoutError(results)
+
+[<Fact>]
+let ``Valid redirect url`` () =
+    let results =
+        runWithSingleFile ("Fixtures" </> "valid-redirect-url-link.md")
+
+    Assert.ExitedWithoutError(results)
