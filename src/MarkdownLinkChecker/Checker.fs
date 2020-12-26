@@ -23,6 +23,9 @@ type CheckedDocument =
       CheckedLinks: CheckedLink []
       Status: Status }
 
+type HttpResponseMessage with
+    member self.IsRedirectStatusCode = int self.StatusCode >= 300 && int self.StatusCode <= 399
+
 let private httpClient = new HttpClient()
 
 let private linkKey (link: Link) =
@@ -42,11 +45,10 @@ let private linkPosition (link: Link) =
 
 let private checkUrlStatus (url: string) =
     async {
-        let! response =
-            httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url))
-            |> Async.AwaitTask
+        let request = new HttpRequestMessage(HttpMethod.Head, url)
+        let! response = httpClient.SendAsync(request) |> Async.AwaitTask
 
-        return if response.IsSuccessStatusCode then Found else NotFound
+        return if response.IsSuccessStatusCode || response.IsRedirectStatusCode then Found else NotFound
     }
 
 let private checkFileStatus (path: string) =
